@@ -5,17 +5,22 @@ import { signOut } from './actions';
 export default async function Home() {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
+  if (user.role === 'chro') redirect('/chro');
 
+  // super_admin cross-customer view lands in a later milestone; placeholder for now.
   return (
-    <main style={{ maxWidth: 480, margin: '80px auto', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: 20, marginBottom: 12 }}>FutureReady Admin Portal</h1>
-      <p>
-        Signed in as {user.name} &middot; {user.email} &middot; role: {user.role}
-        {user.customer_id ? ` · customer: ${user.customer_id}` : ''}
-      </p>
-      <form action={signOut} style={{ marginTop: 24 }}>
-        <button type="submit">Sign out</button>
-      </form>
-    </main>
+    <div className="theme-ink">
+      <main className="shell">
+        <div className="eyebrow">FutureReady &middot; Admin</div>
+        <div className="h1" style={{ fontSize: 26 }}>Signed in as {user.name}</div>
+        <p className="sub">
+          {user.email} &middot; role: {user.role}
+        </p>
+        <p className="sub">Cross-customer view is coming in a later milestone.</p>
+        <form action={signOut}>
+          <button type="submit" className="btn btn-ghost">Sign out</button>
+        </form>
+      </main>
+    </div>
   );
 }

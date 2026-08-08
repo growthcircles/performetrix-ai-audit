@@ -328,7 +328,7 @@ function renderAdmin(){
   return '<div class="shell">'
     +'<div class="eyebrow">FutureReady &middot; CHRO Console</div>'
     +'<div class="h1">Readiness diagnostics</div>'
-    +'<div class="sub">Generate a confidential link for each leader. Only you and Shiva Coaching see individual results. Leaders never see each other\'s scores.</div>'
+    +'<div class="sub">Generate a confidential link for each leader. Only you and Shiva Venkateswaran see individual results. Leaders never see each other\'s scores.</div>'
     +'<div class="org-row"><label>Organisation</label><input id="orgInput" value="'+state.orgName+'" /></div>'
     +'<div class="panel"><div class="panel-title">Add a leader</div>'
       +'<div class="add-row"><input id="leaderNameInput" placeholder="Leader full name" />'
@@ -337,7 +337,7 @@ function renderAdmin(){
     +'</div>'
     +'<div class="panel"><div class="panel-title">Leaders ('+state.leaders.length+')</div>'
       +(rows || '<div class="empty-note">No leaders added yet.</div>')
-      +'<div class="confidentiality-note">Each link is unique to one leader and carries no visible identifying detail. Completed results are delivered to you as CHRO, with a copy to Shiva Coaching for follow-up preparation. Nothing is shared between leaders.</div>'
+      +'<div class="confidentiality-note">Each link is unique to one leader and carries no visible identifying detail. Completed results are delivered to you as CHRO, with a copy to Shiva Venkateswaran for follow-up preparation. Nothing is shared between leaders.</div>'
     +'</div>'
     +'</div>';
 }
@@ -465,7 +465,7 @@ function renderReport(){
     +'<span class="back-link" data-action="back-admin">&larr; Back to console</span>'
     +'<div class="eyebrow">FutureReady Readiness Profile</div>'
     +'<div class="h1">'+leader.name+'</div>'
-    +'<div class="delivery-line">Delivered to '+state.chroName+' &middot; '+state.orgName+' &nbsp;&middot;&nbsp; cc Shiva Coaching</div>'
+    +'<div class="delivery-line">Delivered to '+state.chroName+' &middot; '+state.orgName+' &nbsp;&middot;&nbsp; cc Shiva Venkateswaran</div>'
     +legend
     +'<div class="score-hero"><div class="score-big">'+r.overall+'</div><div><div class="score-big-label">Overall FutureReady score</div>'
       +'<div style="font-size:12.5px;opacity:0.6;margin-top:4px;">Self-assessment only. Stakeholder 360 runs once coaching begins.</div></div></div>'

@@ -13,26 +13,25 @@ export default async function LoginPage({
   const { error } = await searchParams;
 
   return (
-    <main style={{ maxWidth: 360, margin: '80px auto', fontFamily: 'sans-serif' }}>
-      <h1 style={{ fontSize: 20, marginBottom: 24 }}>FutureReady Admin Portal</h1>
-      <form action={signIn} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <label>
-          Email
-          <input name="email" type="email" required autoComplete="email" style={{ display: 'block', width: '100%' }} />
-        </label>
-        <label>
-          Password
-          <input
-            name="password"
-            type="password"
-            required
-            autoComplete="current-password"
-            style={{ display: 'block', width: '100%' }}
-          />
-        </label>
-        {error && <p style={{ color: 'crimson', fontSize: 13 }}>{error}</p>}
-        <button type="submit">Sign in</button>
-      </form>
-    </main>
+    <div className="theme-ink">
+      <main className="shell" style={{ maxWidth: 360 }}>
+        <div className="eyebrow">FutureReady</div>
+        <div className="h1" style={{ fontSize: 26 }}>Admin Portal</div>
+        <div className="sub">Sign in to your CHRO or admin console.</div>
+
+        <form action={signIn}>
+          <div className="field">
+            <label htmlFor="email">Email</label>
+            <input id="email" name="email" type="email" required autoComplete="email" />
+          </div>
+          <div className="field">
+            <label htmlFor="password">Password</label>
+            <input id="password" name="password" type="password" required autoComplete="current-password" />
+          </div>
+          {error && <p className="form-error">{error}</p>}
+          <button type="submit" className="btn">Sign in</button>
+        </form>
+      </main>
+    </div>
   );
 }
