@@ -51,8 +51,8 @@ a { color: inherit; text-decoration: none; }
 .stat-row { display: flex; gap: 32px; flex-wrap: wrap; }
 .stat-value { font-family: var(--font-display); font-size: 32px; color: var(--brass-light); line-height: 1; }
 .stat-label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; opacity: 0.6; margin-top: 6px; }
-.add-row { display: flex; gap: 10px; }
-.add-row input { flex: 1; background: var(--ink-3); border: 1px solid var(--ink-line); color: var(--ink-text); padding: 11px 14px; border-radius: 2px; font-family: var(--font-body); font-size: 14px; outline: none; }
+.add-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.add-row input, .add-row select { flex: 1; min-width: 160px; background: var(--ink-3); border: 1px solid var(--ink-line); color: var(--ink-text); padding: 11px 14px; border-radius: 2px; font-family: var(--font-body); font-size: 14px; outline: none; }
 .add-row input::placeholder { color: var(--ink-text-dim); }
 .btn { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.06em; padding: 11px 18px; border-radius: 2px; border: 1px solid var(--brass); background: var(--brass); color: var(--ink); cursor: pointer; white-space: nowrap; transition: opacity .15s; }
 .btn:hover { opacity: 0.85; }

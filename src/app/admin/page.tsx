@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getAdminOverview, getAuditLog } from '@/lib/data/admin';
 import { signOut } from '@/app/actions';
+import { createCustomer, inviteChro } from './actions';
+import { InviteChroForm } from '@/components/InviteChroForm';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -19,6 +21,8 @@ function formatDateTime(iso: string) {
 const ACTION_LABELS: Record<string, string> = {
   view_report: 'viewed the report for leader',
   delete_leader: 'deleted leader',
+  create_customer: 'created customer',
+  invite_chro: 'invited a CHRO for customer',
 };
 
 export default async function AdminPage() {
@@ -56,6 +60,23 @@ export default async function AdminPage() {
               <div className="stat-label">Completion rate</div>
             </div>
           </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-title">Create a customer</div>
+          <form action={createCustomer} className="add-row">
+            <input name="name" placeholder="Organisation name" required />
+            <button type="submit" className="btn">Create</button>
+          </form>
+        </div>
+
+        <div className="panel">
+          <div className="panel-title">Invite a CHRO</div>
+          {data.customers.length === 0 ? (
+            <div className="empty-note">Create a customer first before inviting a CHRO for them.</div>
+          ) : (
+            <InviteChroForm customers={data.customers} action={inviteChro} />
+          )}
         </div>
 
         <div className="panel">
