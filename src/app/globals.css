@@ -97,6 +97,58 @@ a { color: inherit; text-decoration: none; }
 .confirm-box { text-align: center; padding: 60px 20px; }
 .confirm-mark { font-family: var(--font-display); font-size: 44px; color: var(--brass); margin-bottom: 18px; }
 
+/* ---- report ---- */
+.delivery-line { font-family: var(--font-mono); font-size: 11.5px; opacity: 0.55; margin-bottom: 30px; }
+.score-hero { display: flex; align-items: baseline; gap: 18px; margin-bottom: 44px; padding-bottom: 32px; border-bottom: 1px solid var(--ink-line); }
+.score-big { font-family: var(--font-display); font-size: 76px; font-weight: 500; line-height: 1; color: var(--brass-light); }
+.score-big-label { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; opacity: 0.6; }
+
+.gauge-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 18px; margin-bottom: 48px; }
+.gauge-card { background: var(--ink-2); border: 1px solid var(--ink-line); border-radius: 3px; padding: 20px 14px; text-align: center; }
+.gauge-wrap { position: relative; width: 96px; height: 96px; margin: 0 auto 12px; }
+.gauge-value { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 22px; color: var(--ink-text); }
+.gauge-name { font-family: var(--font-display); font-size: 14.5px; margin-bottom: 6px; }
+.gauge-flag { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.06em; color: var(--rust); }
+
+.pillar-detail { background: var(--ink-2); border: 1px solid var(--ink-line); border-radius: 3px; padding: 22px 24px; margin-bottom: 16px; }
+.pillar-detail-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; }
+.pillar-detail-name { font-family: var(--font-display); font-size: 18px; }
+.pillar-detail-score { font-family: var(--font-mono); font-size: 15px; color: var(--brass-light); }
+.subdim-block { margin-bottom: 16px; }
+.subdim-block:last-child { margin-bottom: 0; }
+.subdim-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 5px; }
+.subdim-name { font-size: 13px; font-weight: 500; opacity: 0.9; }
+.subdim-score { font-family: var(--font-mono); font-size: 11.5px; opacity: 0.7; }
+.subdim-bar { height: 6px; background: var(--ink-3); border-radius: 3px; overflow: hidden; margin-bottom: 5px; }
+.subdim-fill { height: 100%; background: var(--brass); }
+.subdim-desc { font-size: 12px; line-height: 1.5; opacity: 0.55; }
+
+.method-note { font-size: 12px; line-height: 1.7; opacity: 0.5; margin-top: 36px; padding-top: 24px; border-top: 1px solid var(--ink-line); }
+
+.legend-panel { background: var(--ink-2); border: 1px solid var(--ink-line); border-radius: 3px; padding: 22px 24px; margin-bottom: 36px; }
+.legend-title { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; opacity: 0.6; margin-bottom: 14px; }
+.legend-list { font-size: 13px; line-height: 1.7; opacity: 0.85; margin: 0 0 16px; padding-left: 18px; }
+.legend-list li { margin-bottom: 6px; }
+.legend-swatches { display: flex; gap: 24px; padding-top: 14px; border-top: 1px solid var(--ink-line); }
+.legend-swatch { display: flex; align-items: center; gap: 8px; font-size: 12px; opacity: 0.8; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.dot-brass { background: var(--brass); }
+.dot-rust { background: var(--rust); }
+
+.impact-summary { border: 1px solid var(--rust); background: rgba(182,92,63,0.08); border-radius: 3px; padding: 22px 24px; margin-bottom: 36px; }
+.impact-summary.clear { border-color: var(--sage); background: rgba(124,144,130,0.08); }
+.impact-summary-title { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; margin-bottom: 14px; color: var(--rust); }
+.impact-summary.clear .impact-summary-title { color: var(--sage); }
+.impact-item { margin-bottom: 14px; }
+.impact-item:last-child { margin-bottom: 0; }
+.impact-item-name { font-family: var(--font-display); font-size: 15px; margin-bottom: 4px; }
+.impact-item-text { font-size: 13px; line-height: 1.6; opacity: 0.85; }
+
+.pillar-impact { font-size: 12.5px; line-height: 1.6; opacity: 0.7; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--ink-line); }
+.pillar-impact.flagged { opacity: 0.9; color: var(--brass-light); }
+
 @media (max-width: 640px) {
   .leader-row { flex-direction: column; align-items: flex-start; }
+  .gauge-grid { grid-template-columns: repeat(2,1fr); }
+  .score-big { font-size: 56px; }
 }

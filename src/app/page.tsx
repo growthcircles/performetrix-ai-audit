@@ -17,6 +17,11 @@ export default async function Home() {
           {user.email} &middot; role: {user.role}
         </p>
         <p className="sub">Cross-customer view is coming in a later milestone.</p>
+        <p className="sub">
+          <a className="back-link" href="/sample-report" style={{ marginBottom: 0 }}>
+            Preview a sample report, no assessment needed &rarr;
+          </a>
+        </p>
         <form action={signOut}>
           <button type="submit" className="btn btn-ghost">Sign out</button>
         </form>

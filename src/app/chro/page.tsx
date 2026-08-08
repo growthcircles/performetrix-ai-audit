@@ -53,7 +53,10 @@ export default async function ChroConsolePage() {
               </div>
               <div className="row-actions">
                 {leader.status === 'completed' ? (
-                  <span className="status-pill status-done">Completed</span>
+                  <>
+                    <span className="status-pill status-done">Completed</span>
+                    <a className="btn btn-ghost" href={`/reports/${leader.id}`}>View report</a>
+                  </>
                 ) : (
                   <span className="status-pill status-pending">Pending</span>
                 )}
