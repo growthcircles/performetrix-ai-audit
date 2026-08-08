@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>FutureReady Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#14171F;
+  --ink-2:#1B2029;
+  --ink-3:#242A38;
+  --ink-line:#333B4C;
+  --ink-text:#E8E4DA;
+  --ink-text-dim:#9AA3B5;
+  --paper:#F5F1E7;
+  --paper-2:#ECE5D4;
+  --paper-line:#D8CFB8;
+  --paper-text:#221F1A;
+  --paper-text-dim:#6E6656;
+  --brass:#B4915B;
+  --brass-light:#D8BE8F;
+  --rust:#B65C3F;
+  --sage:#7C9082;
+  --font-display:'Fraunces', Georgia, serif;
+  --font-body:'Inter', -apple-system, sans-serif;
+  --font-mono:'IBM Plex Mono', monospace;
+}
+*{box-sizing:border-box;}
+body{margin:0;font-family:var(--font-body);}
+.app-root{min-height:100vh;width:100%;}
+.theme-ink{background:var(--ink);color:var(--ink-text);}
+.theme-paper{background:var(--paper);color:var(--paper-text);}
+
+/* ---- shell ---- */
+.shell{max-width:840px;margin:0 auto;padding:48px 32px 80px;}
+.eyebrow{font-family:var(--font-mono);font-size:11px;letter-spacing:0.14em;text-transform:uppercase;opacity:0.65;margin-bottom:10px;}
+.h1{font-family:var(--font-display);font-weight:500;font-size:34px;line-height:1.15;margin:0 0 6px;}
+.sub{font-size:14.5px;line-height:1.6;opacity:0.75;max-width:520px;margin:0 0 32px;}
+.back-link{font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.04em;text-transform:uppercase;opacity:0.6;cursor:pointer;display:inline-block;margin-bottom:24px;text-decoration:none;}
+.back-link:hover{opacity:1;}
+
+/* ---- admin ---- */
+.org-row{display:flex;gap:12px;align-items:center;margin-bottom:36px;padding-bottom:28px;border-bottom:1px solid var(--ink-line);}
+.org-row input{background:transparent;border:none;border-bottom:1px solid var(--ink-line);color:var(--ink-text);font-family:var(--font-display);font-size:17px;padding:4px 2px;outline:none;width:280px;}
+.org-row label{font-family:var(--font-mono);font-size:10.5px;text-transform:uppercase;letter-spacing:0.1em;opacity:0.55;}
+
+.panel{background:var(--ink-2);border:1px solid var(--ink-line);border-radius:3px;padding:24px 26px;margin-bottom:20px;}
+.panel-title{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.6;margin-bottom:16px;}
+.add-row{display:flex;gap:10px;}
+.add-row input{flex:1;background:var(--ink-3);border:1px solid var(--ink-line);color:var(--ink-text);padding:11px 14px;border-radius:2px;font-family:var(--font-body);font-size:14px;outline:none;}
+.add-row input::placeholder{color:var(--ink-text-dim);}
+.btn{font-family:var(--font-mono);font-size:11.5px;letter-spacing:0.06em;text-transform:uppercase;padding:11px 18px;border-radius:2px;border:1px solid var(--brass);background:var(--brass);color:var(--ink);cursor:pointer;white-space:nowrap;transition:opacity .15s;}
+.btn:hover{opacity:0.85;}
+.btn-ghost{background:transparent;color:var(--brass-light);border:1px solid var(--ink-line);}
+.btn-ghost:hover{border-color:var(--brass);}
+.btn:disabled{opacity:0.35;cursor:not-allowed;}
+
+.leader-row{display:flex;align-items:center;justify-content:space-between;padding:16px 0;border-bottom:1px solid var(--ink-line);}
+.leader-row:last-child{border-bottom:none;}
+.leader-name{font-family:var(--font-display);font-size:16.5px;}
+.leader-meta{font-family:var(--font-mono);font-size:10.5px;opacity:0.5;margin-top:3px;}
+.status-pill{font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:4px 9px;border-radius:12px;}
+.status-pending{background:rgba(180,145,91,0.15);color:var(--brass-light);border:1px solid rgba(180,145,91,0.4);}
+.status-done{background:rgba(124,144,130,0.15);color:var(--sage);border:1px solid rgba(124,144,130,0.4);}
+.row-actions{display:flex;align-items:center;gap:14px;}
+.link-box{font-family:var(--font-mono);font-size:11.5px;background:var(--ink-3);border:1px solid var(--ink-line);padding:8px 12px;border-radius:2px;margin-top:8px;color:var(--ink-text-dim);word-break:break-all;}
+.empty-note{font-size:13.5px;opacity:0.5;padding:8px 0;}
+.confidentiality-note{font-size:12.5px;opacity:0.55;line-height:1.6;margin-top:18px;padding-top:18px;border-top:1px solid var(--ink-line);}
+
+/* ---- assessment (leader) ---- */
+.progress-track{height:3px;background:var(--paper-line);border-radius:2px;overflow:hidden;margin-bottom:38px;}
+.progress-fill{height:100%;background:var(--brass);transition:width .3s ease;}
+.step-label{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--paper-text-dim);margin-bottom:8px;}
+.scenario-context{background:var(--paper-2);border:1px solid var(--paper-line);border-radius:3px;padding:20px 22px;font-size:14.5px;line-height:1.65;margin-bottom:24px;}
+.option-card, .rank-card{border:1px solid var(--paper-line);background:var(--paper-2);border-radius:3px;padding:16px 18px;margin-bottom:10px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:border-color .15s, background .15s;}
+.option-card:hover, .rank-card:hover{border-color:var(--brass);}
+.option-card.selected, .rank-card.ranked{border-color:var(--brass);background:rgba(180,145,91,0.1);}
+.option-key{font-family:var(--font-mono);font-size:12px;color:var(--paper-text-dim);flex-shrink:0;width:16px;}
+.option-text, .rank-text{font-size:14.5px;line-height:1.5;flex:1;}
+.rank-badge{width:24px;height:24px;border-radius:50%;background:var(--brass);color:var(--paper);font-family:var(--font-mono);font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rank-empty{width:24px;height:24px;border-radius:50%;border:1px solid var(--paper-line);flex-shrink:0;}
+.step-actions{display:flex;justify-content:space-between;align-items:center;margin-top:28px;}
+.reset-link{font-family:var(--font-mono);font-size:11px;text-transform:uppercase;letter-spacing:0.06em;opacity:0.5;cursor:pointer;}
+.reset-link:hover{opacity:0.9;}
+.rank-hint{font-size:12px;opacity:0.55;margin-bottom:16px;}
+.btn-paper{background:var(--paper-text);color:var(--paper);border:1px solid var(--paper-text);}
+.btn-paper:disabled{opacity:0.3;}
+
+.confirm-box{text-align:center;padding:60px 20px;}
+.confirm-mark{font-family:var(--font-display);font-size:44px;color:var(--brass);margin-bottom:18px;}
+
+/* ---- report ---- */
+.delivery-line{font-family:var(--font-mono);font-size:11.5px;opacity:0.55;margin-bottom:30px;}
+.score-hero{display:flex;align-items:baseline;gap:18px;margin-bottom:44px;padding-bottom:32px;border-bottom:1px solid var(--ink-line);}
+.score-big{font-family:var(--font-display);font-size:76px;font-weight:500;line-height:1;color:var(--brass-light);}
+.score-big-label{font-family:var(--font-mono);font-size:12px;text-transform:uppercase;letter-spacing:0.08em;opacity:0.6;}
+
+.gauge-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:48px;}
+.gauge-card{background:var(--ink-2);border:1px solid var(--ink-line);border-radius:3px;padding:20px 14px;text-align:center;}
+.gauge-wrap{position:relative;width:96px;height:96px;margin:0 auto 12px;}
+.gauge-value{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:22px;color:var(--ink-text);}
+.gauge-name{font-family:var(--font-display);font-size:14.5px;margin-bottom:6px;}
+.gauge-flag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:var(--rust);}
+
+.pillar-detail{background:var(--ink-2);border:1px solid var(--ink-line);border-radius:3px;padding:22px 24px;margin-bottom:16px;}
+.pillar-detail-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;}
+.pillar-detail-name{font-family:var(--font-display);font-size:18px;}
+.pillar-detail-score{font-family:var(--font-mono);font-size:15px;color:var(--brass-light);}
+.subdim-block{margin-bottom:16px;}
+.subdim-block:last-child{margin-bottom:0;}
+.subdim-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.subdim-name{font-size:13px;font-weight:500;opacity:0.9;}
+.subdim-score{font-family:var(--font-mono);font-size:11.5px;opacity:0.7;}
+.subdim-bar{height:6px;background:var(--ink-3);border-radius:3px;overflow:hidden;margin-bottom:5px;}
+.subdim-fill{height:100%;background:var(--brass);}
+.subdim-desc{font-size:12px;line-height:1.5;opacity:0.55;}
+
+.method-note{font-size:12px;line-height:1.7;opacity:0.5;margin-top:36px;padding-top:24px;border-top:1px solid var(--ink-line);}
+
+.legend-panel{background:var(--ink-2);border:1px solid var(--ink-line);border-radius:3px;padding:22px 24px;margin-bottom:36px;}
+.legend-title{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;opacity:0.6;margin-bottom:14px;}
+.legend-list{font-size:13px;line-height:1.7;opacity:0.85;margin:0 0 16px;padding-left:18px;}
+.legend-list li{margin-bottom:6px;}
+.legend-swatches{display:flex;gap:24px;padding-top:14px;border-top:1px solid var(--ink-line);}
+.legend-swatch{display:flex;align-items:center;gap:8px;font-size:12px;opacity:0.8;}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.dot-brass{background:var(--brass);}
+.dot-rust{background:var(--rust);}
+
+.impact-summary{border:1px solid var(--rust);background:rgba(182,92,63,0.08);border-radius:3px;padding:22px 24px;margin-bottom:36px;}
+.impact-summary.clear{border-color:var(--sage);background:rgba(124,144,130,0.08);}
+.impact-summary-title{font-family:var(--font-mono);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:14px;color:var(--rust);}
+.impact-summary.clear .impact-summary-title{color:var(--sage);}
+.impact-item{margin-bottom:14px;}
+.impact-item:last-child{margin-bottom:0;}
+.impact-item-name{font-family:var(--font-display);font-size:15px;margin-bottom:4px;}
+.impact-item-text{font-size:13px;line-height:1.6;opacity:0.85;}
+
+.pillar-impact{font-size:12.5px;line-height:1.6;opacity:0.7;margin-top:14px;padding-top:14px;border-top:1px solid var(--ink-line);}
+.pillar-impact.flagged{opacity:0.9;color:var(--brass-light);}
+
+@media(max-width:640px){.gauge-grid{grid-template-columns:repeat(2,1fr);} .score-big{font-size:56px;} .subdim-label{width:130px;font-size:11.5px;}}
+</style>
+</head>
+<body>
+<div id="app" class="app-root"></div>
+
+<script>
+/* ---------------- data ---------------- */
+const SUCCESSION = {
+  key:'succession', name:'Succession-Ready', type:'forced',
+  dims:['ownership','decisiveness','development'],
+  dimLabels:{ownership:'Ownership', decisiveness:'Decisiveness', development:'Development of Others'},
+  blocks:[
+    {ownership:"I make decisions that technically require my manager's sign-off, then inform them afterward with full context.",
+     decisiveness:"When a brief is incomplete, I set a direction and move, rather than sending it back for more clarity.",
+     development:"I give stretch opportunities to junior team members and let them present their own work to leadership."},
+    {ownership:"When something goes wrong on a project I lead, I'm the first to name what I could have done differently, before anyone asks.",
+     decisiveness:"I'll commit to a course of action with about 70% of the information I'd ideally want, rather than waiting for more.",
+     development:"I deliberately step back from a decision I could easily make myself, so someone on my team can make it instead."}
+  ]
+};
+const GLOBAL = {
+  key:'global', name:'Globally-Ready', type:'forced',
+  dims:['adaptation','curiosity','awareness'],
+  dimLabels:{adaptation:'Deliberate Adaptation', curiosity:'Curiosity about Norms', awareness:'Self-Awareness of Assumptions'},
+  blocks:[
+    {adaptation:"I slow down and check for understanding in meetings with colleagues who aren't communicating in their first language, without being asked.",
+     curiosity:"Before changing how a team in another market operates, I ask why they currently do it that way.",
+     awareness:"I catch myself when I'm applying an assumption from my home market to a different market, and check it with someone local."},
+    {adaptation:"I adjust how directly I give feedback depending on the cultural background of the person I'm speaking to.",
+     curiosity:"When something in another market's way of working confuses me, my first instinct is to ask about it rather than assume it's inefficient.",
+     awareness:"I notice when a decision I'm about to make would look different if I were leading from a different regional office, and I factor that in."}
+  ]
+};
+const JUDGMENT = {
+  key:'judgment', name:'Judgment-Ready', type:'scenario',
+  dims:['decisiveness','feedback','values'],
+  dimLabels:{decisiveness:'Decisiveness under Ambiguity', feedback:'Feedback-Loop Building', values:'Values-Anchoring'},
+  scenarios:[
+    { context:"You lead a division of 400 people. Finance flags that a long-standing client, worth 12% of divisional revenue, has requested a pricing exception outside normal approval limits, with a decision needed within 14 hours. The client's finance director has been a reliable partner for six years. Your Head of Finance recommends against the exception on margin grounds. Your CRM data shows the client has been quoted by two competitors in the last quarter. There is no policy covering exceptions of this size.",
+      options:[
+        {key:'A', text:"Approve the exception at the level requested, and instruct Finance to model the margin impact over the following week.", dims:{decisiveness:3,feedback:1,values:2}},
+        {key:'B', text:"Approve a partial exception, roughly half the requested reduction, and offer to revisit in a formal review within 30 days.", dims:{decisiveness:3,feedback:3,values:2}},
+        {key:'C', text:"Decline the exception as requested, but offer an alternative structure, extended payment terms instead of a price reduction, within the 14 hour window.", dims:{decisiveness:3,feedback:1,values:3}},
+        {key:'D', text:"Ask the client for 48 hours, using the extra time to get a same-day view from your CFO before committing either way.", dims:{decisiveness:1,feedback:1,values:1}}
+      ]},
+    { context:"You've been made aware that a peer at your level has, on three occasions over the past year, approved supplier contracts that fall within their formal sign-off authority but sit outside guidance the organisation issued eighteen months ago on supplier diversity. No policy breach has occurred. One instance was raised informally by a junior team member who has since moved to a different department. You have a scheduled one to one with this peer in four days, and a broader leadership meeting in ten days where quarterly supplier data is normally reviewed.",
+      options:[
+        {key:'A', text:"Use the scheduled one to one in four days to raise it directly with your peer.", dims:{decisiveness:3,feedback:2,values:3}},
+        {key:'B', text:"Contact HR or the relevant governance function before the one to one, to understand whether this has been flagged before.", dims:{decisiveness:2,feedback:3,values:3}},
+        {key:'C', text:"Wait for the leadership meeting in ten days and raise it through the standard supplier data review, where it will surface as part of normal reporting.", dims:{decisiveness:1,feedback:1,values:1}},
+        {key:'D', text:"Speak first to the junior team member who originally raised it informally, to understand what they observed before taking further action.", dims:{decisiveness:2,feedback:2,values:2}}
+      ]}
+  ]
+};
+const RELATIONSHIP = {
+  key:'relationship', name:'Relationship-Ready', type:'scenario',
+  dims:['consistency','surfacing','individual'],
+  dimLabels:{consistency:'Consistency and Trust', surfacing:'Early-Surfacing', individual:'Individual Responsiveness'},
+  scenarios:[
+    { context:"A senior direct report has missed a critical deadline for the second time this quarter. Their explanation cites a dependency delay from another team, but a quick check shows that dependency was resolved five days before the deadline passed. Three other team members are aware of the missed deadline and are waiting to see how you respond. You have a standing one to one with this person tomorrow, and a wider team update is due in two days.",
+      options:[
+        {key:'A', text:"Address it directly in tomorrow's one to one, ask the direct report to walk you through the five days between the dependency being resolved and the deadline passing, and decide next steps based on what you learn.", dims:{consistency:3,surfacing:2,individual:3}},
+        {key:'B', text:"Address it now, before tomorrow's one to one, given three other team members are already watching how you respond.", dims:{consistency:1,surfacing:3,individual:1}},
+        {key:'C', text:"Wait until the wider team update in two days, and address the pattern at that point in a way that sets a standard for everyone, not just this person.", dims:{consistency:2,surfacing:1,individual:1}},
+        {key:'D', text:"Ask one of the three team members privately for their read on what happened before speaking to the direct report.", dims:{consistency:1,surfacing:2,individual:1}}
+      ]},
+    { context:"A newer team member on a global team has been quiet in the last three team meetings, contributing only when asked directly. Their written contributions in shared documents are strong. A colleague mentions offhand that this person \"doesn't say much.\" You don't have a one to one scheduled with them for another two weeks.",
+      options:[
+        {key:'A', text:"Set up an earlier one to one this week to check in, without stating a specific concern in the invite.", dims:{consistency:2,surfacing:3,individual:3}},
+        {key:'B', text:"Raise it in the next team meeting by inviting broader input from everyone, so it doesn't single anyone out.", dims:{consistency:1,surfacing:2,individual:1}},
+        {key:'C', text:"Wait for the scheduled one to one in two weeks, since the written work shows they're contributing fine.", dims:{consistency:2,surfacing:1,individual:1}},
+        {key:'D', text:"Ask the colleague who mentioned it to keep an informal eye on things and flag anything further.", dims:{consistency:1,surfacing:2,individual:1}}
+      ]}
+  ]
+};
+const PILLAR_ORDER = [SUCCESSION, JUDGMENT, RELATIONSHIP, GLOBAL];
+
+/* flatten into steps */
+const STEPS = [];
+PILLAR_ORDER.forEach(p=>{
+  if(p.type==='forced'){
+    p.blocks.forEach((b,i)=> STEPS.push({pillar:p.key, kind:'forced', index:i}));
+  } else {
+    p.scenarios.forEach((s,i)=> STEPS.push({pillar:p.key, kind:'scenario', index:i}));
+  }
+});
+
+/* ---------------- state ---------------- */
+let state = {
+  view:'admin',
+  orgName:'Meridian Group',
+  chroName:'Chief HR Officer',
+  leaders:[], // {id,name,token,status,scores}
+  activeLeaderId:null,
+  stepIdx:0,
+  session:{} // pillarKey -> array of answers per block/scenario
+};
+
+function pillarByKey(k){ return PILLAR_ORDER.find(p=>p.key===k); }
+
+function newSession(){
+  const s = {};
+  PILLAR_ORDER.forEach(p=>{ s[p.key] = p.type==='forced' ? p.blocks.map(()=>({})) : p.scenarios.map(()=>null); });
+  return s;
+}
+
+function normalize(sum){ return Math.round(((sum-2)/4)*100); }
+
+function scoreSession(session){
+  const pillarScores = {};
+  const subdims = {};
+  PILLAR_ORDER.forEach(p=>{
+    const dimSums = {}; p.dims.forEach(d=> dimSums[d]=0);
+    if(p.type==='forced'){
+      session[p.key].forEach(block=>{ p.dims.forEach(d=>{ dimSums[d]+= (block[d]||0); }); });
+    } else {
+      session[p.key].forEach((choiceKey, i)=>{
+        const scenario = p.scenarios[i];
+        const opt = scenario.options.find(o=>o.key===choiceKey);
+        if(opt){ p.dims.forEach(d=>{ dimSums[d]+= opt.dims[d]; }); }
+      });
+    }
+    const dimScores = {}; p.dims.forEach(d=> dimScores[d]=normalize(dimSums[d]));
+    subdims[p.key] = dimScores;
+    const vals = p.dims.map(d=>dimScores[d]);
+    pillarScores[p.key] = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  });
+  const overall = Math.round(PILLAR_ORDER.reduce((a,p)=>a+pillarScores[p.key],0)/PILLAR_ORDER.length);
+  return {overall, pillarScores, subdims};
+}
+
+const IMPACT = {
+  succession:"A gap here signals succession risk. The next generation of leaders may not be ready to step into bigger roles when the organisation needs them to, which shows up as slower bench strength and more external hiring under pressure.",
+  judgment:"A gap here signals exposure in ambiguous, fast-moving situations, particularly as AI reshapes decisions that used to have clear precedent. Leaders default to deferring or stalling exactly when speed and ownership matter most.",
+  relationship:"A gap here signals erosion risk on trust and psychological safety. Research increasingly ties this to how people are relating to AI versus their human leaders, and it shows up as problems surfacing late rather than early.",
+  global:"A gap here signals risk in cross-cultural and multinational contexts, as roles increasingly span markets and teams that don't share one cultural default. It shows up as friction and lost trust across regional lines."
+};
+
+const SUBDIM_DESC = {
+  succession:{
+    ownership:"Takes accountability for outcomes above their formal role, without waiting to be asked.",
+    decisiveness:"Sets direction and moves with an incomplete brief, rather than sending it back for more clarity.",
+    development:"Builds capability in others, rather than holding every decision themselves."
+  },
+  judgment:{
+    decisiveness:"Makes a real call under ambiguity, rather than deferring it upward or waiting for more certainty.",
+    feedback:"Builds a short review point into the decision itself, so a wrong call gets caught fast.",
+    values:"Holds a values-based line even when there's no policy forcing the point."
+  },
+  relationship:{
+    consistency:"Responds the same way under pressure as they do day to day, so people know what to expect.",
+    surfacing:"Creates the conditions where problems get raised early, not once they're unavoidable.",
+    individual:"Adjusts to the specific person in front of them, rather than using one style for everyone."
+  },
+  global:{
+    adaptation:"Adjusts communication style for different cultural contexts, without being asked to.",
+    curiosity:"Asks why a norm exists before changing it, rather than assuming it's inefficient.",
+    awareness:"Notices when a home-market assumption is shaping a decision, and checks it against the room."
+  }
+};
+
+/* ---------------- render ---------------- */
+function render(){
+  const app = document.getElementById('app');
+  if(state.view==='admin') app.innerHTML = renderAdmin();
+  else if(state.view==='assessment') app.innerHTML = renderAssessment();
+  else if(state.view==='confirm') app.innerHTML = renderConfirm();
+  else if(state.view==='report') app.innerHTML = renderReport();
+  app.className = 'app-root ' + (state.view==='assessment' ? 'theme-paper' : 'theme-ink');
+}
+
+function renderAdmin(){
+  const rows = state.leaders.map(l=>{
+    const statusHtml = l.status==='completed'
+      ? '<span class="status-pill status-done">Completed</span>'
+      : '<span class="status-pill status-pending">Pending</span>';
+    const action = l.status==='completed'
+      ? '<button class="btn btn-ghost" data-action="view-report" data-id="'+l.id+'">View report</button>'
+      : '<button class="btn" data-action="preview" data-id="'+l.id+'">Preview as leader</button>';
+    return '<div class="leader-row"><div><div class="leader-name">'+l.name+'</div>'
+      +'<div class="leader-meta">token: '+l.token+(l.status==='pending' ? '<div class="link-box">futureready.app/a/'+l.token+'</div>' : '')+'</div></div>'
+      +'<div class="row-actions">'+statusHtml+action+'</div></div>';
+  }).join('');
+
+  return '<div class="shell">'
+    +'<div class="eyebrow">FutureReady &middot; CHRO Console</div>'
+    +'<div class="h1">Readiness diagnostics</div>'
+    +'<div class="sub">Generate a confidential link for each leader. Only you and Shiva Coaching see individual results. Leaders never see each other\'s scores.</div>'
+    +'<div class="org-row"><label>Organisation</label><input id="orgInput" value="'+state.orgName+'" /></div>'
+    +'<div class="panel"><div class="panel-title">Add a leader</div>'
+      +'<div class="add-row"><input id="leaderNameInput" placeholder="Leader full name" />'
+      +'<button class="btn" data-action="add-leader">Generate confidential link</button></div>'
+      +'<div style="margin-top:14px;"><span class="reset-link" data-action="preview-sample">Preview a sample report, no assessment needed &rarr;</span></div>'
+    +'</div>'
+    +'<div class="panel"><div class="panel-title">Leaders ('+state.leaders.length+')</div>'
+      +(rows || '<div class="empty-note">No leaders added yet.</div>')
+      +'<div class="confidentiality-note">Each link is unique to one leader and carries no visible identifying detail. Completed results are delivered to you as CHRO, with a copy to Shiva Coaching for follow-up preparation. Nothing is shared between leaders.</div>'
+    +'</div>'
+    +'</div>';
+}
+
+function renderProgress(){
+  const pct = Math.round((state.stepIdx/STEPS.length)*100);
+  return '<div class="progress-track"><div class="progress-fill" style="width:'+pct+'%"></div></div>';
+}
+
+function renderAssessment(){
+  const step = STEPS[state.stepIdx];
+  const pillar = pillarByKey(step.pillar);
+  const leader = state.leaders.find(l=>l.id===state.activeLeaderId);
+  let body = '';
+  let canNext = false;
+
+  if(step.kind==='forced'){
+    const block = pillar.blocks[step.index];
+    const answer = state.session[pillar.key][step.index];
+    const ranked = Object.keys(answer).length;
+    canNext = ranked===3;
+    body += '<div class="rank-hint">Click the statements in order, most like you first, least like you last.</div>';
+    pillar.dims.forEach(d=>{
+      const rank = answer[d];
+      body += '<div class="rank-card '+(rank?'ranked':'')+'" data-action="rank" data-dim="'+d+'">'
+        + (rank ? '<div class="rank-badge">'+rank+'</div>' : '<div class="rank-empty"></div>')
+        + '<div class="rank-text">'+block[d]+'</div></div>';
+    });
+    body += '<div class="reset-link" data-action="reset-block">Start this block over</div>';
+  } else {
+    const scenario = pillar.scenarios[step.index];
+    const chosen = state.session[pillar.key][step.index];
+    canNext = !!chosen;
+    body += '<div class="rank-hint">Read the situation, then choose the single response closest to how you\'d actually act. There\'s no correct answer, pick what you\'d really do.</div>';
+    body += '<div class="scenario-context">'+scenario.context+'</div>';
+    scenario.options.forEach(o=>{
+      body += '<div class="option-card '+(chosen===o.key?'selected':'')+'" data-action="choose" data-key="'+o.key+'">'
+        +'<div class="option-key">'+o.key+'</div><div class="option-text">'+o.text+'</div></div>';
+    });
+  }
+
+  const isLast = state.stepIdx === STEPS.length-1;
+  return '<div class="shell">'
+    +'<div class="eyebrow">FutureReady Assessment '+(leader?('&middot; '+state.orgName):'')+'</div>'
+    +renderProgress()
+    +'<div class="step-label">'+pillar.name+' &middot; Part '+(step.index+1)+' of '+(step.kind==='forced'?pillar.blocks.length:pillar.scenarios.length)+'</div>'
+    +body
+    +'<div class="step-actions">'
+      +(state.stepIdx>0 ? '<span class="reset-link" data-action="prev-step">Back</span>' : '<span></span>')
+      +'<button class="btn btn-paper" data-action="next-step" '+(canNext?'':'disabled')+'>'+(isLast?'Submit':'Next')+'</button>'
+    +'</div>'
+    +'</div>';
+}
+
+function renderConfirm(){
+  return '<div class="shell"><div class="confirm-box">'
+    +'<div class="confirm-mark">&#10003;</div>'
+    +'<div class="h1" style="font-size:26px">Thanks, that\'s submitted</div>'
+    +'<div class="sub" style="margin:0 auto">Your responses have been sent for review. Nothing here is visible to your colleagues.</div>'
+    +'</div></div>';
+}
+
+function gaugeSvg(score, id){
+  const r=50, c=2*Math.PI*r;
+  const offset = c*(1-score/100);
+  const priority = score<=80;
+  const tickAngle = -90 + 0.8*360;
+  const rad = tickAngle*Math.PI/180;
+  const x1 = 60+42*Math.cos(rad), y1 = 60+42*Math.sin(rad);
+  const x2 = 60+58*Math.cos(rad), y2 = 60+58*Math.sin(rad);
+  return '<svg viewBox="0 0 120 120" width="96" height="96">'
+    +'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="#333B4C" stroke-width="9"/>'
+    +'<circle cx="60" cy="60" r="'+r+'" fill="none" stroke="'+(priority?'#B65C3F':'#B4915B')+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+c+'" stroke-dashoffset="'+offset+'" transform="rotate(-90 60 60)"/>'
+    +'<line x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'" stroke="#9AA3B5" stroke-width="1.5"/>'
+    +'</svg>';
+}
+
+function renderReport(){
+  const leader = state.leaders.find(l=>l.id===state.activeLeaderId);
+  const r = leader.scores;
+  const flagged = PILLAR_ORDER.filter(p=>r.pillarScores[p.key]<=80);
+
+  const gauges = PILLAR_ORDER.map(p=>{
+    const score = r.pillarScores[p.key];
+    return '<div class="gauge-card"><div class="gauge-wrap">'+gaugeSvg(score)+'<div class="gauge-value">'+score+'</div></div>'
+      +'<div class="gauge-name">'+p.name+'</div>'
+      +(score<=80 ? '<div class="gauge-flag">Priority gap</div>' : '')
+      +'</div>';
+  }).join('');
+
+  const legend = '<div class="legend-panel"><div class="legend-title">How to read this report</div>'
+    +'<ul class="legend-list">'
+    +'<li>The overall FutureReady score is the average of the four pillar scores below, each scored out of 100.</li>'
+    +'<li>Each pillar breaks into three sub-dimensions. These show what is actually driving that pillar\'s number, not just the number itself.</li>'
+    +'<li>This is a self-assessment only. It is a diagnostic for where to focus, not a final verdict, a fuller picture forms once stakeholder input joins it in the coaching programme.</li>'
+    +'</ul>'
+    +'<div class="legend-swatches">'
+    +'<div class="legend-swatch"><div class="legend-dot dot-brass"></div>Score above 80, on track</div>'
+    +'<div class="legend-swatch"><div class="legend-dot dot-rust"></div>Score at or below 80, priority gap</div>'
+    +'</div></div>';
+
+  const impactSummary = flagged.length
+    ? '<div class="impact-summary"><div class="impact-summary-title">What this could mean for the organisation</div>'
+      + flagged.map(p=>'<div class="impact-item"><div class="impact-item-name">'+p.name+'</div><div class="impact-item-text">'+IMPACT[p.key]+'</div></div>').join('')
+      +'</div>'
+    : '<div class="impact-summary clear"><div class="impact-summary-title">No priority gaps flagged</div>'
+      +'<div class="impact-item-text">All four pillars sit above the priority threshold. Worth a lighter-touch programme focused on sharpening strengths rather than closing gaps.</div></div>';
+
+  const details = PILLAR_ORDER.map(p=>{
+    const score = r.pillarScores[p.key];
+    const isFlagged = score<=80;
+    const rows = p.dims.map(d=>{
+      const v = r.subdims[p.key][d];
+      return '<div class="subdim-block"><div class="subdim-top"><span class="subdim-name">'+p.dimLabels[d]+'</span><span class="subdim-score">'+v+'</span></div>'
+        +'<div class="subdim-bar"><div class="subdim-fill" style="width:'+v+'%"></div></div>'
+        +'<div class="subdim-desc">'+SUBDIM_DESC[p.key][d]+'</div></div>';
+    }).join('');
+    return '<div class="pillar-detail"><div class="pillar-detail-head"><div class="pillar-detail-name">'+p.name+'</div>'
+      +'<div class="pillar-detail-score">'+score+' / 100</div></div>'+rows
+      +'<div class="pillar-impact '+(isFlagged?'flagged':'')+'">'+IMPACT[p.key]+'</div>'
+      +'</div>';
+  }).join('');
+
+  return '<div class="shell">'
+    +'<span class="back-link" data-action="back-admin">&larr; Back to console</span>'
+    +'<div class="eyebrow">FutureReady Readiness Profile</div>'
+    +'<div class="h1">'+leader.name+'</div>'
+    +'<div class="delivery-line">Delivered to '+state.chroName+' &middot; '+state.orgName+' &nbsp;&middot;&nbsp; cc Shiva Coaching</div>'
+    +legend
+    +'<div class="score-hero"><div class="score-big">'+r.overall+'</div><div><div class="score-big-label">Overall FutureReady score</div>'
+      +'<div style="font-size:12.5px;opacity:0.6;margin-top:4px;">Self-assessment only. Stakeholder 360 runs once coaching begins.</div></div></div>'
+    +'<div class="gauge-grid">'+gauges+'</div>'
+    +impactSummary
+    +details
+    +'<div class="method-note">Scoring is ipsative at the item level and normative at the pillar level. Statements and scenarios force a trade-off rather than an independent rating, which is what keeps self-report inflation out. Pillar and overall scores are then normalized for comparison against the priority gap threshold, set at 80, deliberately higher than a typical scale to account for the absence of stakeholder input at this stage.</div>'
+    +'</div>';
+}
+
+function sampleScores(){
+  const subdims = {
+    succession:{ownership:85, decisiveness:80, development:88},
+    judgment:{decisiveness:70, feedback:35, values:60},
+    relationship:{consistency:92, surfacing:88, individual:90},
+    global:{adaptation:78, curiosity:82, awareness:55}
+  };
+  const pillarScores = {};
+  PILLAR_ORDER.forEach(p=>{
+    const vals = p.dims.map(d=>subdims[p.key][d]);
+    pillarScores[p.key] = Math.round(vals.reduce((a,b)=>a+b,0)/vals.length);
+  });
+  const overall = Math.round(PILLAR_ORDER.reduce((a,p)=>a+pillarScores[p.key],0)/PILLAR_ORDER.length);
+  return {overall, pillarScores, subdims};
+}
+
+/* ---------------- events ---------------- */
+document.addEventListener('click', function(e){
+  const el = e.target.closest('[data-action]');
+  if(!el) return;
+  const action = el.getAttribute('data-action');
+
+  if(action==='add-leader'){
+    const nameInput = document.getElementById('leaderNameInput');
+    const name = nameInput.value.trim();
+    if(!name) return;
+    const token = Math.random().toString(36).slice(2,8);
+    state.leaders.push({id:'l'+Date.now(), name, token, status:'pending', scores:null});
+    nameInput.value='';
+  }
+  else if(action==='preview-sample'){
+    const id = 'sample'+Date.now();
+    state.leaders.push({id, name:'Sample Leader (preview)', token:'preview', status:'completed', scores:sampleScores()});
+    state.activeLeaderId = id;
+    state.view='report';
+  }
+  else if(action==='preview'){
+    state.activeLeaderId = el.getAttribute('data-id');
+    state.session = newSession();
+    state.stepIdx = 0;
+    state.view='assessment';
+  }
+  else if(action==='view-report'){
+    state.activeLeaderId = el.getAttribute('data-id');
+    state.view='report';
+  }
+  else if(action==='back-admin'){
+    state.view='admin';
+  }
+  else if(action==='rank'){
+    const step = STEPS[state.stepIdx];
+    const pillar = pillarByKey(step.pillar);
+    const answer = state.session[pillar.key][step.index];
+    const dim = el.getAttribute('data-dim');
+    if(answer[dim]) return; // already ranked
+    const used = Object.values(answer);
+    const next = 3-used.length;
+    answer[dim]=next;
+  }
+  else if(action==='reset-block'){
+    const step = STEPS[state.stepIdx];
+    state.session[step.pillar][step.index] = {};
+  }
+  else if(action==='choose'){
+    const step = STEPS[state.stepIdx];
+    state.session[step.pillar][step.index] = el.getAttribute('data-key');
+  }
+  else if(action==='next-step'){
+    if(state.stepIdx < STEPS.length-1){
+      state.stepIdx++;
+    } else {
+      const scores = scoreSession(state.session);
+      const leader = state.leaders.find(l=>l.id===state.activeLeaderId);
+      leader.status='completed';
+      leader.scores=scores;
+      state.view='confirm';
+      render();
+      setTimeout(()=>{ state.view='admin'; render(); }, 1600);
+      return;
+    }
+  }
+  else if(action==='prev-step'){
+    if(state.stepIdx>0) state.stepIdx--;
+  }
+  render();
+});
+
+document.addEventListener('change', function(e){
+  if(e.target.id==='orgInput'){ state.orgName = e.target.value; }
+});
+
+render();
+</script>
+</body>
+</html>
