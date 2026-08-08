@@ -100,3 +100,51 @@ export async function getAdminOverview(): Promise<AdminOverview | null> {
     leaders: leadersOut,
   };
 }
+
+export type AuditEntry = {
+  id: string;
+  actorName: string;
+  actorEmail: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  createdAt: string;
+};
+
+// super_admin only, matching the RLS policy on audit_log. actor_id
+// references auth.users, not public.users, so PostgREST can't embed the
+// join automatically - fetched separately and merged.
+export async function getAuditLog(limit = 50): Promise<AuditEntry[] | null> {
+  const user = await getCurrentUser();
+  if (!user || user.role !== 'super_admin') return null;
+
+  const supabase = await createClient();
+
+  const { data: entries } = await supabase
+    .from('audit_log')
+    .select('id, actor_id, action, target_type, target_id, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  const list = entries ?? [];
+  const actorIds = [...new Set(list.map((e) => e.actor_id).filter((id): id is string => !!id))];
+
+  const { data: actors } = actorIds.length
+    ? await supabase.from('users').select('id, name, email').in('id', actorIds)
+    : { data: [] as { id: string; name: string; email: string }[] };
+
+  const actorMap = new Map((actors ?? []).map((a) => [a.id, a]));
+
+  return list.map((e) => {
+    const actor = e.actor_id ? actorMap.get(e.actor_id) : undefined;
+    return {
+      id: e.id,
+      actorName: actor?.name ?? 'Unknown',
+      actorEmail: actor?.email ?? '',
+      action: e.action,
+      targetType: e.target_type,
+      targetId: e.target_id,
+      createdAt: e.created_at,
+    };
+  });
+}

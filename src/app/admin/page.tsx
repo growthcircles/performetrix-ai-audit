@@ -1,13 +1,28 @@
 import { redirect } from 'next/navigation';
-import { getAdminOverview } from '@/lib/data/admin';
+import { getAdminOverview, getAuditLog } from '@/lib/data/admin';
 import { signOut } from '@/app/actions';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
+function formatDateTime(iso: string) {
+  return new Date(iso).toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+}
+
+const ACTION_LABELS: Record<string, string> = {
+  view_report: 'viewed the report for leader',
+  delete_leader: 'deleted leader',
+};
+
 export default async function AdminPage() {
-  const data = await getAdminOverview();
+  const [data, auditLog] = await Promise.all([getAdminOverview(), getAuditLog()]);
   if (!data) redirect('/');
 
   const completionRate = data.totalLeaders
@@ -105,6 +120,21 @@ export default async function AdminPage() {
               Preview a sample report, no assessment needed &rarr;
             </a>
           </div>
+        </div>
+
+        <div className="panel">
+          <div className="panel-title">Recent activity</div>
+          {(!auditLog || auditLog.length === 0) && <div className="empty-note">No activity logged yet.</div>}
+          {auditLog?.map((entry) => (
+            <div className="leader-row" key={entry.id}>
+              <div>
+                <div className="leader-name" style={{ fontSize: 14 }}>
+                  {entry.actorName} {ACTION_LABELS[entry.action] ?? `${entry.action} ${entry.targetType}`} {entry.targetId.slice(0, 8)}
+                </div>
+                <div className="leader-meta">{entry.actorEmail} &middot; {formatDateTime(entry.createdAt)}</div>
+              </div>
+            </div>
+          ))}
         </div>
 
         <form action={signOut}>

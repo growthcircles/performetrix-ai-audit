@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getChroConsoleData } from '@/lib/data/leaders';
 import { signOut } from '@/app/actions';
-import { addLeader } from './actions';
+import { addLeader, deleteLeader } from './actions';
+import { DeleteLeaderButton } from '@/components/DeleteLeaderButton';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -60,6 +61,7 @@ export default async function ChroConsolePage() {
                 ) : (
                   <span className="status-pill status-pending">Pending</span>
                 )}
+                <DeleteLeaderButton leaderId={leader.id} leaderName={leader.name} action={deleteLeader} />
               </div>
             </div>
           ))}

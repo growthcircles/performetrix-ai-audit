@@ -1,6 +1,7 @@
 import 'server-only';
 import { createClient } from '@/lib/supabase/server';
 import { getCurrentUser } from './auth';
+import { logAccess } from './audit';
 import type { ScoreResult } from '@/lib/assessment/scoring';
 
 export type LeaderReport = {
@@ -48,6 +49,8 @@ export async function getLeaderReport(leaderId: string): Promise<LeaderReport | 
     .maybeSingle();
 
   const customer = leader.customers as unknown as { name: string } | null;
+
+  await logAccess({ actorId: user.id, action: 'view_report', targetType: 'leader', targetId: leaderId });
 
   return {
     leaderName: leader.name,
