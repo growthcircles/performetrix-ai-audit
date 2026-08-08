@@ -15,7 +15,7 @@ export default async function SampleReportPage() {
       chroName="Sample CHRO"
       scores={getSampleScores()}
       isPreview
-      backHref="/"
+      backHref="/admin"
     />
   );
 }
