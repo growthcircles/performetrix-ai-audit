@@ -21,21 +21,12 @@ export type CustomerStat = {
   completedCount: number;
 };
 
-export type AdminLeader = {
-  id: string;
-  name: string;
-  orgName: string;
-  status: 'pending' | 'completed';
-  createdAt: string;
-};
-
 export type AdminOverview = {
   totalCustomers: number;
   totalLeaders: number;
   completedLeaders: number;
   pillarPatterns: PillarPattern[];
   customers: CustomerStat[];
-  leaders: AdminLeader[];
 };
 
 // super_admin only - RLS already scopes "customers"/"leaders"/"submissions"
@@ -83,21 +74,57 @@ export async function getAdminOverview(): Promise<AdminOverview | null> {
     };
   });
 
-  const leadersOut: AdminLeader[] = leaderList.map((l) => ({
-    id: l.id,
-    name: l.name,
-    orgName: customerMap.get(l.customer_id) ?? '',
-    status: l.status,
-    createdAt: l.created_at,
-  }));
-
   return {
     totalCustomers: customerList.length,
     totalLeaders: leaderList.length,
     completedLeaders: leaderList.filter((l) => l.status === 'completed').length,
     pillarPatterns,
     customers: customerStats,
-    leaders: leadersOut,
+  };
+}
+
+export type CustomerDetailLeader = {
+  id: string;
+  name: string;
+  status: 'pending' | 'completed';
+  createdAt: string;
+};
+
+export type CustomerDetail = {
+  id: string;
+  name: string;
+  leaders: CustomerDetailLeader[];
+};
+
+export async function getCustomerDetail(customerId: string): Promise<CustomerDetail | null> {
+  const user = await getCurrentUser();
+  if (!user || user.role !== 'super_admin') return null;
+
+  const supabase = await createClient();
+
+  const { data: customer } = await supabase
+    .from('customers')
+    .select('id, name')
+    .eq('id', customerId)
+    .maybeSingle();
+
+  if (!customer) return null;
+
+  const { data: leaders } = await supabase
+    .from('leaders')
+    .select('id, name, status, created_at')
+    .eq('customer_id', customerId)
+    .order('created_at', { ascending: false });
+
+  return {
+    id: customer.id,
+    name: customer.name,
+    leaders: (leaders ?? []).map((l) => ({
+      id: l.id,
+      name: l.name,
+      status: l.status,
+      createdAt: l.created_at,
+    })),
   };
 }
 

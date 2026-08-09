@@ -6,7 +6,7 @@ import ReportView from '@/components/report/ReportView';
 export default async function SampleReportPage() {
   const user = await getCurrentUser();
   if (!user) redirect('/login');
-  if (user.role !== 'super_admin') redirect('/');
+  if (user.role !== 'chro') redirect('/');
 
   return (
     <ReportView
@@ -15,7 +15,7 @@ export default async function SampleReportPage() {
       chroName="Sample CHRO"
       scores={getSampleScores()}
       isPreview
-      backHref="/admin"
+      backHref="/chro"
     />
   );
 }

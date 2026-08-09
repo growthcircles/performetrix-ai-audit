@@ -72,7 +72,11 @@ export default async function ChroConsolePage() {
           </div>
         </div>
 
-        <form action={signOut}>
+        <a className="back-link" href="/sample-report" style={{ marginBottom: 0 }}>
+          Preview a sample report, no assessment needed &rarr;
+        </a>
+
+        <form action={signOut} style={{ marginTop: 24 }}>
           <button type="submit" className="btn btn-ghost">Sign out</button>
         </form>
       </main>

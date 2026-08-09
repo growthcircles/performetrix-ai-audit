@@ -4,10 +4,6 @@ import { signOut } from '@/app/actions';
 import { createCustomer, inviteChro } from './actions';
 import { InviteChroForm } from '@/components/InviteChroForm';
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
-}
-
 export default async function AdminPage() {
   const data = await getAdminOverview();
   if (!data) redirect('/');
@@ -85,45 +81,15 @@ export default async function AdminPage() {
           <div className="panel-title">Customers ({data.customers.length})</div>
           {data.customers.length === 0 && <div className="empty-note">No customers yet.</div>}
           {data.customers.map((c) => (
-            <div className="leader-row" key={c.id}>
+            <a className="leader-row" href={`/admin/customers/${c.id}`} key={c.id} style={{ cursor: 'pointer' }}>
               <div>
                 <div className="leader-name">{c.name}</div>
                 <div className="leader-meta">
                   {c.completedCount} of {c.leaderCount} leaders completed
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="panel">
-          <div className="panel-title">All leaders ({data.leaders.length})</div>
-          {data.leaders.length === 0 && <div className="empty-note">No leaders yet.</div>}
-          {data.leaders.map((l) => (
-            <div className="leader-row" key={l.id}>
-              <div>
-                <div className="leader-name">{l.name}</div>
-                <div className="leader-meta">
-                  {l.orgName} &middot; added {formatDate(l.createdAt)}
-                </div>
-              </div>
-              <div className="row-actions">
-                {l.status === 'completed' ? (
-                  <>
-                    <span className="status-pill status-done">Completed</span>
-                    <a className="btn btn-ghost" href={`/reports/${l.id}`}>View report</a>
-                  </>
-                ) : (
-                  <span className="status-pill status-pending">Pending</span>
-                )}
-              </div>
-            </div>
-          ))}
-          <div className="confidentiality-note">
-            <a className="back-link" href="/sample-report" style={{ marginBottom: 0 }}>
-              Preview a sample report, no assessment needed &rarr;
             </a>
-          </div>
+          ))}
         </div>
 
         <a className="back-link" href="/admin/activity" style={{ marginBottom: 0 }}>
