@@ -3,6 +3,7 @@ import { getChroConsoleData } from '@/lib/data/leaders';
 import { signOut } from '@/app/actions';
 import { addLeader, deleteLeader } from './actions';
 import { DeleteLeaderButton } from '@/components/DeleteLeaderButton';
+import { Logo } from '@/components/Logo';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -18,7 +19,10 @@ export default async function ChroConsolePage() {
   return (
     <div className="theme-ink">
       <main className="shell">
-        <div className="eyebrow">FutureReady &middot; CHRO Console</div>
+        <div className="brand-row">
+          <Logo />
+          <span className="eyebrow">CHRO Console</span>
+        </div>
         <div className="h1">Readiness Diagnostics</div>
         <p className="sub">
           Generate a confidential link for each leader. Only you and Shiva Venkateswaran see individual

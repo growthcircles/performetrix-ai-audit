@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getCustomerDetail } from '@/lib/data/admin';
 import { updateCustomerName, updateChroEmail } from '../../actions';
 import { EditChroEmailForm } from '@/components/EditChroEmailForm';
+import { Logo } from '@/components/Logo';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -19,7 +20,10 @@ export default async function CustomerDetailPage(props: PageProps<'/admin/custom
     <div className="theme-ink">
       <main className="shell">
         <a className="back-link" href="/admin">&larr; Back to dashboard</a>
-        <div className="eyebrow">FutureReady &middot; Admin</div>
+        <div className="brand-row">
+          <Logo />
+          <span className="eyebrow">Admin</span>
+        </div>
         <div className="h1">{customer.name}</div>
         <p className="sub">
           {completedCount} of {customer.leaders.length} leaders completed

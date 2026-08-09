@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/data/auth';
 import { getLeaderReport } from '@/lib/data/reports';
 import ReportView from '@/components/report/ReportView';
+import { Logo } from '@/components/Logo';
 
 export default async function ReportPage(props: PageProps<'/reports/[leaderId]'>) {
   const user = await getCurrentUser();
@@ -15,6 +16,7 @@ export default async function ReportPage(props: PageProps<'/reports/[leaderId]'>
       <div className="theme-ink">
         <main className="shell">
           <a className="back-link" href={user.role === 'chro' ? '/chro' : '/admin'}>&larr; Back to console</a>
+          <div style={{ marginBottom: 18 }}><Logo height={32} /></div>
           <div className="h1" style={{ fontSize: 26 }}>Report not found</div>
           <p className="sub">
             This report doesn&apos;t exist, isn&apos;t ready yet, or isn&apos;t visible to your account.

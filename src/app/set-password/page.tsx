@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/lib/data/auth';
 import { setPassword } from './actions';
+import { Logo } from '@/components/Logo';
 
 export default async function SetPasswordPage({
   searchParams,
@@ -15,7 +16,7 @@ export default async function SetPasswordPage({
   return (
     <div className="theme-ink">
       <main className="shell" style={{ maxWidth: 360 }}>
-        <div className="eyebrow">FutureReady</div>
+        <div style={{ marginBottom: 22 }}><Logo height={40} /></div>
         <div className="h1" style={{ fontSize: 26 }}>Set your password</div>
         <p className="sub">Welcome, {user.name}. Choose a password to finish setting up your account.</p>
 

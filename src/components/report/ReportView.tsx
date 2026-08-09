@@ -1,6 +1,7 @@
 import { PILLAR_ORDER, IMPACT, SUBDIM_DESC } from '@/lib/assessment/data';
 import type { ScoreResult } from '@/lib/assessment/scoring';
 import Gauge from './Gauge';
+import { Logo } from '@/components/Logo';
 
 const THRESHOLD = 80;
 
@@ -30,7 +31,10 @@ export default function ReportView({
             Preview only — sample data, not a real submission.
           </div>
         )}
-        <div className="eyebrow">FutureReady Readiness Profile</div>
+        <div className="brand-row">
+          <Logo height={32} />
+          <span className="eyebrow">Readiness Profile</span>
+        </div>
         <div className="h1">{leaderName}</div>
         <div className="delivery-line">
           Delivered to {chroName} &middot; {orgName} &nbsp;&middot;&nbsp; cc Shiva Venkateswaran

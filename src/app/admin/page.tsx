@@ -3,6 +3,7 @@ import { getAdminOverview } from '@/lib/data/admin';
 import { signOut } from '@/app/actions';
 import { createCustomer, inviteChro } from './actions';
 import { InviteChroForm } from '@/components/InviteChroForm';
+import { Logo } from '@/components/Logo';
 
 export default async function AdminPage() {
   const data = await getAdminOverview();
@@ -15,7 +16,10 @@ export default async function AdminPage() {
   return (
     <div className="theme-ink">
       <main className="shell">
-        <div className="eyebrow">FutureReady &middot; Admin</div>
+        <div className="brand-row">
+          <Logo />
+          <span className="eyebrow">Admin</span>
+        </div>
         <div className="h1">Cross-Customer Overview</div>
         <p className="sub">Every customer, every leader, every completed report, in one place.</p>
 

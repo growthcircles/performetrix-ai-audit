@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getAuditLog } from '@/lib/data/admin';
 import { clearActivityLog } from '../actions';
 import { ClearActivityLogButton } from '@/components/ClearActivityLogButton';
+import { Logo } from '@/components/Logo';
 
 function formatDateTime(iso: string) {
   return new Date(iso).toLocaleString('en-US', {
@@ -31,7 +32,10 @@ export default async function ActivityLogPage() {
     <div className="theme-ink">
       <main className="shell">
         <a className="back-link" href="/admin">&larr; Back to dashboard</a>
-        <div className="eyebrow">FutureReady &middot; Admin</div>
+        <div className="brand-row">
+          <Logo />
+          <span className="eyebrow">Admin</span>
+        </div>
         <div className="h1">Activity Log</div>
         <p className="sub">Who viewed which report, who deleted what, who was invited, and when.</p>
 

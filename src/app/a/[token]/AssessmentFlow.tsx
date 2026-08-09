@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import type { PublicPillar, ForcedAnswer, Session } from '@/lib/assessment/types';
 import { submitAssessmentAction } from './actions';
+import { Logo } from '@/components/Logo';
 
 type Step = { pillarKey: string; kind: 'forced' | 'scenario'; index: number };
 
@@ -45,6 +46,7 @@ export default function AssessmentFlow({
     return (
       <div className="theme-paper">
         <main className="shell confirm-box">
+          <div style={{ marginBottom: 18 }}><Logo height={36} /></div>
           <div className="confirm-mark">&#10003;</div>
           <div className="h1" style={{ fontSize: 26 }}>Thanks, that&apos;s submitted</div>
           <p className="sub" style={{ margin: '0 auto' }}>
@@ -159,7 +161,10 @@ export default function AssessmentFlow({
   return (
     <div className="theme-paper">
       <main className="shell">
-        <div className="eyebrow">FutureReady Assessment{orgName ? ` · ${orgName}` : ''}</div>
+        <div className="brand-row">
+          <Logo />
+          <span className="eyebrow">Assessment{orgName ? ` · ${orgName}` : ''}</span>
+        </div>
         <div className="progress-track">
           <div className="progress-fill" style={{ width: `${pct}%` }} />
         </div>
