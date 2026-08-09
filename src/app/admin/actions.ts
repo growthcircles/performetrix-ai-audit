@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceClient } from '@/lib/supabase/service';
 import { getCurrentUser } from '@/lib/data/auth';
@@ -191,6 +192,69 @@ export async function updateChroEmail(userId: string, formData: FormData): Promi
   });
 
   return { ok: true, inviteUrl, emailSent: emailResult.ok, emailError: emailResult.error };
+}
+
+export async function deleteChro(userId: string) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== 'super_admin') throw new Error('Unauthorized');
+
+  const service = createServiceClient();
+  const { data: chro } = await service
+    .from('users')
+    .select('id, name, email, customer_id')
+    .eq('id', userId)
+    .eq('role', 'chro')
+    .maybeSingle();
+
+  if (!chro) throw new Error('Not found');
+
+  // Deleting the auth user cascades to the public.users row (FK on delete
+  // cascade), so there's nothing separate to clean up there.
+  const { error } = await service.auth.admin.deleteUser(userId);
+  if (error) throw new Error(error.message);
+
+  await logAccess({
+    actorId: user.id,
+    action: 'delete_chro',
+    targetType: 'user',
+    targetId: userId,
+    detail: `${chro.name} (${chro.email})`,
+  });
+
+  revalidatePath('/admin');
+  if (chro.customer_id) revalidatePath(`/admin/customers/${chro.customer_id}`);
+}
+
+export async function deleteCustomer(customerId: string) {
+  const user = await getCurrentUser();
+  if (!user || user.role !== 'super_admin') throw new Error('Unauthorized');
+
+  const service = createServiceClient();
+  const { data: customer } = await service.from('customers').select('id, name').eq('id', customerId).maybeSingle();
+  if (!customer) throw new Error('Not found');
+
+  // CHRO accounts must go first: the leaders_requires_customer-style check
+  // constraint (chro_requires_customer) rejects the FK's ON DELETE SET NULL
+  // that would otherwise fire when the customer disappears out from under
+  // a CHRO row - same conflict the very first manual cleanup hit.
+  const { data: chros } = await service.from('users').select('id').eq('customer_id', customerId).eq('role', 'chro');
+  for (const chro of chros ?? []) {
+    await service.auth.admin.deleteUser(chro.id);
+  }
+
+  const { error } = await service.from('customers').delete().eq('id', customerId);
+  if (error) throw new Error(error.message);
+
+  await logAccess({
+    actorId: user.id,
+    action: 'delete_customer',
+    targetType: 'customer',
+    targetId: customerId,
+    detail: customer.name,
+  });
+
+  revalidatePath('/admin');
+  redirect('/admin');
 }
 
 export async function clearActivityLog() {

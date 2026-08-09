@@ -1,7 +1,8 @@
 import { redirect } from 'next/navigation';
 import { getCustomerDetail } from '@/lib/data/admin';
-import { updateCustomerName, updateChroEmail } from '../../actions';
+import { updateCustomerName, updateChroEmail, deleteChro, deleteCustomer } from '../../actions';
 import { EditChroEmailForm } from '@/components/EditChroEmailForm';
+import { DeleteButton } from '@/components/DeleteButton';
 import { Logo } from '@/components/Logo';
 
 function formatDate(iso: string) {
@@ -42,9 +43,17 @@ export default async function CustomerDetailPage(props: PageProps<'/admin/custom
           {customer.chros.length === 0 && <div className="empty-note">No CHRO invited yet.</div>}
           {customer.chros.map((c) => (
             <div className="leader-row" key={c.id} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
-              <div style={{ width: '100%' }}>
-                <div className="leader-name">{c.name}</div>
-                <div className="leader-meta">{c.email}</div>
+              <div style={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <div className="leader-name">{c.name}</div>
+                  <div className="leader-meta">{c.email}</div>
+                </div>
+                <DeleteButton
+                  id={c.id}
+                  label="Delete"
+                  confirmMessage={`Remove ${c.name}'s CHRO account (${c.email})? This permanently deletes their login and cannot be undone.`}
+                  action={deleteChro}
+                />
               </div>
               <EditChroEmailForm userId={c.id} currentEmail={c.email} action={updateChroEmail} />
             </div>
@@ -72,6 +81,20 @@ export default async function CustomerDetailPage(props: PageProps<'/admin/custom
               </div>
             </div>
           ))}
+        </div>
+
+        <div className="panel">
+          <div className="panel-title">Danger zone</div>
+          <p className="sub" style={{ marginBottom: 16 }}>
+            Deletes this organisation, its CHRO account(s), and all its leaders and submissions. This
+            cannot be undone.
+          </p>
+          <DeleteButton
+            id={customerId}
+            label="Delete this organisation"
+            confirmMessage={`Delete ${customer.name} entirely, including its CHRO account(s) and all ${customer.leaders.length} leader(s)? This permanently removes all their data and cannot be undone.`}
+            action={deleteCustomer}
+          />
         </div>
       </main>
     </div>
