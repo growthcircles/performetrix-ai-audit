@@ -1,34 +1,15 @@
 import { redirect } from 'next/navigation';
-import { getAdminOverview, getAuditLog } from '@/lib/data/admin';
+import { getAdminOverview } from '@/lib/data/admin';
 import { signOut } from '@/app/actions';
-import { createCustomer, inviteChro, clearActivityLog } from './actions';
+import { createCustomer, inviteChro } from './actions';
 import { InviteChroForm } from '@/components/InviteChroForm';
-import { ClearActivityLogButton } from '@/components/ClearActivityLogButton';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-}
-
-const ACTION_LABELS: Record<string, string> = {
-  view_report: 'viewed the report for leader',
-  delete_leader: 'deleted leader',
-  create_customer: 'created customer',
-  invite_chro: 'invited CHRO',
-  clear_activity_log: 'cleared the activity log',
-};
-
 export default async function AdminPage() {
-  const [data, auditLog] = await Promise.all([getAdminOverview(), getAuditLog()]);
+  const data = await getAdminOverview();
   if (!data) redirect('/');
 
   const completionRate = data.totalLeaders
@@ -145,26 +126,11 @@ export default async function AdminPage() {
           </div>
         </div>
 
-        <div className="panel">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <div className="panel-title" style={{ marginBottom: 0 }}>Recent activity</div>
-            {auditLog && auditLog.length > 0 && <ClearActivityLogButton action={clearActivityLog} />}
-          </div>
-          {(!auditLog || auditLog.length === 0) && <div className="empty-note">No activity logged yet.</div>}
-          {auditLog?.map((entry) => (
-            <div className="leader-row" key={entry.id}>
-              <div>
-                <div className="leader-name" style={{ fontSize: 14 }}>
-                  {entry.actorName} {ACTION_LABELS[entry.action] ?? `${entry.action} ${entry.targetType}`}
-                  {(entry.detail ?? entry.targetId) ? ` ${entry.detail ?? entry.targetId?.slice(0, 8)}` : ''}
-                </div>
-                <div className="leader-meta">{entry.actorEmail} &middot; {formatDateTime(entry.createdAt)}</div>
-              </div>
-            </div>
-          ))}
-        </div>
+        <a className="back-link" href="/admin/activity" style={{ marginBottom: 0 }}>
+          View activity log &rarr;
+        </a>
 
-        <form action={signOut}>
+        <form action={signOut} style={{ marginTop: 24 }}>
           <button type="submit" className="btn btn-ghost">Sign out</button>
         </form>
       </main>
