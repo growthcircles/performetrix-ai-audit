@@ -1,5 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getCustomerDetail } from '@/lib/data/admin';
+import { updateCustomerName, updateChroEmail } from '../../actions';
+import { EditChroEmailForm } from '@/components/EditChroEmailForm';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -11,6 +13,7 @@ export default async function CustomerDetailPage(props: PageProps<'/admin/custom
   if (!customer) redirect('/admin');
 
   const completedCount = customer.leaders.filter((l) => l.status === 'completed').length;
+  const updateCustomerNameWithId = updateCustomerName.bind(null, customerId);
 
   return (
     <div className="theme-ink">
@@ -21,6 +24,28 @@ export default async function CustomerDetailPage(props: PageProps<'/admin/custom
         <p className="sub">
           {completedCount} of {customer.leaders.length} leaders completed
         </p>
+
+        <div className="panel">
+          <div className="panel-title">Organisation name</div>
+          <form action={updateCustomerNameWithId} className="add-row">
+            <input name="name" defaultValue={customer.name} required />
+            <button type="submit" className="btn">Save</button>
+          </form>
+        </div>
+
+        <div className="panel">
+          <div className="panel-title">CHRO accounts ({customer.chros.length})</div>
+          {customer.chros.length === 0 && <div className="empty-note">No CHRO invited yet.</div>}
+          {customer.chros.map((c) => (
+            <div className="leader-row" key={c.id} style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+              <div style={{ width: '100%' }}>
+                <div className="leader-name">{c.name}</div>
+                <div className="leader-meta">{c.email}</div>
+              </div>
+              <EditChroEmailForm userId={c.id} currentEmail={c.email} action={updateChroEmail} />
+            </div>
+          ))}
+        </div>
 
         <div className="panel">
           <div className="panel-title">Leaders ({customer.leaders.length})</div>

@@ -19,6 +19,8 @@ const ACTION_LABELS: Record<string, string> = {
   create_customer: 'created customer',
   invite_chro: 'invited CHRO',
   clear_activity_log: 'cleared the activity log',
+  update_customer: 'renamed customer',
+  update_chro_email: 'updated CHRO email',
 };
 
 export default async function ActivityLogPage() {

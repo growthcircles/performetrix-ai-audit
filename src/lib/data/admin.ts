@@ -90,10 +90,17 @@ export type CustomerDetailLeader = {
   createdAt: string;
 };
 
+export type CustomerChro = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 export type CustomerDetail = {
   id: string;
   name: string;
   leaders: CustomerDetailLeader[];
+  chros: CustomerChro[];
 };
 
 export async function getCustomerDetail(customerId: string): Promise<CustomerDetail | null> {
@@ -110,11 +117,18 @@ export async function getCustomerDetail(customerId: string): Promise<CustomerDet
 
   if (!customer) return null;
 
-  const { data: leaders } = await supabase
-    .from('leaders')
-    .select('id, name, status, created_at')
-    .eq('customer_id', customerId)
-    .order('created_at', { ascending: false });
+  const [{ data: leaders }, { data: chros }] = await Promise.all([
+    supabase
+      .from('leaders')
+      .select('id, name, status, created_at')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('users')
+      .select('id, name, email')
+      .eq('customer_id', customerId)
+      .eq('role', 'chro'),
+  ]);
 
   return {
     id: customer.id,
@@ -125,6 +139,7 @@ export async function getCustomerDetail(customerId: string): Promise<CustomerDet
       status: l.status,
       createdAt: l.created_at,
     })),
+    chros: chros ?? [],
   };
 }
 
