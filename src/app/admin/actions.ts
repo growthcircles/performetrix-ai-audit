@@ -23,7 +23,7 @@ export async function createCustomer(formData: FormData) {
 
   if (error) throw new Error(error.message);
 
-  await logAccess({ actorId: user.id, action: 'create_customer', targetType: 'customer', targetId: customer.id });
+  await logAccess({ actorId: user.id, action: 'create_customer', targetType: 'customer', targetId: customer.id, detail: name });
 
   revalidatePath('/admin');
 }
@@ -74,8 +74,37 @@ export async function inviteChro(formData: FormData): Promise<InviteChroResult> 
     return { ok: false, error: `Account created, but the invite email failed to send: ${emailResult.error}` };
   }
 
-  await logAccess({ actorId: user.id, action: 'invite_chro', targetType: 'customer', targetId: customerId });
+  await logAccess({
+    actorId: user.id,
+    action: 'invite_chro',
+    targetType: 'customer',
+    targetId: customerId,
+    detail: `${name} for ${customer.name}`,
+  });
 
   revalidatePath('/admin');
   return { ok: true };
+}
+
+export async function clearActivityLog() {
+  const user = await getCurrentUser();
+  if (!user || user.role !== 'super_admin') throw new Error('Unauthorized');
+
+  // audit_log has no delete policy for authenticated roles by design (its
+  // authenticated-client surface is read-only for super_admin) - clearing
+  // goes through the service client, same as every other write to this table.
+  const service = createServiceClient();
+  const { error } = await service.from('audit_log').delete().not('id', 'is', null);
+  if (error) throw new Error(error.message);
+
+  // Logged after clearing, so the log itself always shows who cleared it
+  // and when - clearing the trail doesn't erase that it was cleared.
+  await logAccess({
+    actorId: user.id,
+    action: 'clear_activity_log',
+    targetType: 'audit_log',
+    targetId: null,
+  });
+
+  revalidatePath('/admin');
 }

@@ -1,8 +1,9 @@
 import { redirect } from 'next/navigation';
 import { getAdminOverview, getAuditLog } from '@/lib/data/admin';
 import { signOut } from '@/app/actions';
-import { createCustomer, inviteChro } from './actions';
+import { createCustomer, inviteChro, clearActivityLog } from './actions';
 import { InviteChroForm } from '@/components/InviteChroForm';
+import { ClearActivityLogButton } from '@/components/ClearActivityLogButton';
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -22,7 +23,8 @@ const ACTION_LABELS: Record<string, string> = {
   view_report: 'viewed the report for leader',
   delete_leader: 'deleted leader',
   create_customer: 'created customer',
-  invite_chro: 'invited a CHRO for customer',
+  invite_chro: 'invited CHRO',
+  clear_activity_log: 'cleared the activity log',
 };
 
 export default async function AdminPage() {
@@ -144,13 +146,17 @@ export default async function AdminPage() {
         </div>
 
         <div className="panel">
-          <div className="panel-title">Recent activity</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div className="panel-title" style={{ marginBottom: 0 }}>Recent activity</div>
+            {auditLog && auditLog.length > 0 && <ClearActivityLogButton action={clearActivityLog} />}
+          </div>
           {(!auditLog || auditLog.length === 0) && <div className="empty-note">No activity logged yet.</div>}
           {auditLog?.map((entry) => (
             <div className="leader-row" key={entry.id}>
               <div>
                 <div className="leader-name" style={{ fontSize: 14 }}>
-                  {entry.actorName} {ACTION_LABELS[entry.action] ?? `${entry.action} ${entry.targetType}`} {entry.targetId.slice(0, 8)}
+                  {entry.actorName} {ACTION_LABELS[entry.action] ?? `${entry.action} ${entry.targetType}`}
+                  {(entry.detail ?? entry.targetId) ? ` ${entry.detail ?? entry.targetId?.slice(0, 8)}` : ''}
                 </div>
                 <div className="leader-meta">{entry.actorEmail} &middot; {formatDateTime(entry.createdAt)}</div>
               </div>

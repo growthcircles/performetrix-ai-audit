@@ -50,7 +50,13 @@ export async function getLeaderReport(leaderId: string): Promise<LeaderReport | 
 
   const customer = leader.customers as unknown as { name: string } | null;
 
-  await logAccess({ actorId: user.id, action: 'view_report', targetType: 'leader', targetId: leaderId });
+  await logAccess({
+    actorId: user.id,
+    action: 'view_report',
+    targetType: 'leader',
+    targetId: leaderId,
+    detail: `${leader.name} (${customer?.name ?? 'unknown org'})`,
+  });
 
   return {
     leaderName: leader.name,

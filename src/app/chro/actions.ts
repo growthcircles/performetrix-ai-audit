@@ -39,7 +39,7 @@ export async function deleteLeader(leaderId: string) {
   // than relying on one layer.
   const { data: leader } = await supabase
     .from('leaders')
-    .select('id, customer_id')
+    .select('id, name, customer_id')
     .eq('id', leaderId)
     .maybeSingle();
 
@@ -49,7 +49,13 @@ export async function deleteLeader(leaderId: string) {
 
   // Log before deleting - the row (and its cascaded submission) won't
   // exist to reference afterward.
-  await logAccess({ actorId: user.id, action: 'delete_leader', targetType: 'leader', targetId: leaderId });
+  await logAccess({
+    actorId: user.id,
+    action: 'delete_leader',
+    targetType: 'leader',
+    targetId: leaderId,
+    detail: leader.name,
+  });
 
   const { error } = await supabase.from('leaders').delete().eq('id', leaderId);
   if (error) throw new Error(error.message);

@@ -107,7 +107,8 @@ export type AuditEntry = {
   actorEmail: string;
   action: string;
   targetType: string;
-  targetId: string;
+  targetId: string | null;
+  detail: string | null;
   createdAt: string;
 };
 
@@ -122,7 +123,7 @@ export async function getAuditLog(limit = 50): Promise<AuditEntry[] | null> {
 
   const { data: entries } = await supabase
     .from('audit_log')
-    .select('id, actor_id, action, target_type, target_id, created_at')
+    .select('id, actor_id, action, target_type, target_id, detail, created_at')
     .order('created_at', { ascending: false })
     .limit(limit);
 
@@ -144,6 +145,7 @@ export async function getAuditLog(limit = 50): Promise<AuditEntry[] | null> {
       action: e.action,
       targetType: e.target_type,
       targetId: e.target_id,
+      detail: e.detail,
       createdAt: e.created_at,
     };
   });

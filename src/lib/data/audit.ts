@@ -10,17 +10,19 @@ export async function logAccess({
   action,
   targetType,
   targetId,
+  detail,
 }: {
   actorId: string;
   action: string;
   targetType: string;
-  targetId: string;
+  targetId: string | null;
+  detail?: string;
 }): Promise<void> {
   try {
     const supabase = createServiceClient();
     const { error } = await supabase
       .from('audit_log')
-      .insert({ actor_id: actorId, action, target_type: targetType, target_id: targetId });
+      .insert({ actor_id: actorId, action, target_type: targetType, target_id: targetId, detail });
     if (error) console.error('Failed to write audit log entry:', error);
   } catch (err) {
     console.error('Failed to write audit log entry:', err);
