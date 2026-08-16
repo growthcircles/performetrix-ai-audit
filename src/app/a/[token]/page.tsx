@@ -9,7 +9,7 @@ export default async function AssessmentPage(props: PageProps<'/a/[token]'>) {
 
   if (!leader) {
     return (
-      <div className="theme-paper">
+      <div className="theme-ink">
         <main className="shell confirm-box">
           <div style={{ marginBottom: 18 }}><Logo height={36} /></div>
           <div className="h1" style={{ fontSize: 26 }}>This link isn&apos;t valid</div>
@@ -23,7 +23,7 @@ export default async function AssessmentPage(props: PageProps<'/a/[token]'>) {
 
   if (leader.status === 'completed') {
     return (
-      <div className="theme-paper">
+      <div className="theme-ink">
         <main className="shell confirm-box">
           <div style={{ marginBottom: 18 }}><Logo height={36} /></div>
           <div className="confirm-mark">&#10003;</div>

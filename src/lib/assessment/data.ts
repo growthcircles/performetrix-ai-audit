@@ -132,7 +132,7 @@ export const RELATIONSHIP: Pillar = {
   ],
 };
 
-export const PILLAR_ORDER: Pillar[] = [SUCCESSION, JUDGMENT, RELATIONSHIP, GLOBAL];
+export const PILLAR_ORDER: Pillar[] = [SUCCESSION, GLOBAL, JUDGMENT, RELATIONSHIP];
 
 export function pillarByKey(key: string): Pillar | undefined {
   return PILLAR_ORDER.find((p) => p.key === key);
