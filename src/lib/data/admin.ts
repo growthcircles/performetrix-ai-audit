@@ -19,6 +19,7 @@ export type CustomerStat = {
   name: string;
   leaderCount: number;
   completedCount: number;
+  chroEmails: string[];
 };
 
 export type AdminOverview = {
@@ -38,17 +39,17 @@ export async function getAdminOverview(): Promise<AdminOverview | null> {
 
   const supabase = await createClient();
 
-  const [{ data: customers }, { data: leaders }, { data: submissions }] = await Promise.all([
+  const [{ data: customers }, { data: leaders }, { data: submissions }, { data: chros }] = await Promise.all([
     supabase.from('customers').select('id, name').order('name'),
     supabase.from('leaders').select('id, name, customer_id, status, created_at').order('created_at', { ascending: false }),
     supabase.from('submissions').select('leader_id, computed_scores'),
+    supabase.from('users').select('customer_id, email').eq('role', 'chro'),
   ]);
 
   const customerList = customers ?? [];
   const leaderList = leaders ?? [];
   const submissionList = submissions ?? [];
-
-  const customerMap = new Map(customerList.map((c) => [c.id, c.name]));
+  const chroList = chros ?? [];
 
   const customerStats: CustomerStat[] = customerList.map((c) => {
     const theirs = leaderList.filter((l) => l.customer_id === c.id);
@@ -57,6 +58,7 @@ export async function getAdminOverview(): Promise<AdminOverview | null> {
       name: c.name,
       leaderCount: theirs.length,
       completedCount: theirs.filter((l) => l.status === 'completed').length,
+      chroEmails: chroList.filter((chro) => chro.customer_id === c.id).map((chro) => chro.email),
     };
   });
 

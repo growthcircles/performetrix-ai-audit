@@ -89,6 +89,9 @@ export default async function AdminPage() {
               <div>
                 <div className="leader-name">{c.name}</div>
                 <div className="leader-meta">
+                  {c.chroEmails.length > 0 ? c.chroEmails.join(', ') : 'No CHRO invited yet'}
+                </div>
+                <div className="leader-meta">
                   {c.completedCount} of {c.leaderCount} leaders completed
                 </div>
               </div>
