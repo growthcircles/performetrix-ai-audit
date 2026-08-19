@@ -61,7 +61,9 @@ export default async function ChroConsolePage() {
 
         <div className="panel">
           <div className="panel-title">Leaders ({leaders.length})</div>
-          {leaders.length === 0 && <div className="empty-note">No leaders added yet.</div>}
+          {leaders.length === 0 && (
+            <div className="empty-note">No leaders added yet. Add your first one above to get started.</div>
+          )}
           {leaders.map((leader) => (
             <div className="leader-row" key={leader.id}>
               <div>
@@ -78,7 +80,6 @@ export default async function ChroConsolePage() {
                   <>
                     <span className="status-pill status-done">Completed</span>
                     <a className="btn btn-ghost" href={`/reports/${leader.id}`}>View report</a>
-                    <a className="btn btn-ghost" href={`/chro/${leader.id}/raters`}>360 assessment</a>
                   </>
                 ) : (
                   <span className="status-pill status-pending">Pending</span>
@@ -101,6 +102,17 @@ export default async function ChroConsolePage() {
         <div className="support-note">
           Questions? Email <a href="mailto:shiva@growth-circles.com">shiva@growth-circles.com</a>, happy
           to help.
+        </div>
+
+        <div style={{ textAlign: 'center', marginTop: 16 }}>
+          <a
+            className="btn btn-ghost"
+            href="https://cal.com/growthcircles/30min"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Book a meeting with Shiva
+          </a>
         </div>
 
         <form action={signOut} style={{ marginTop: 24 }}>

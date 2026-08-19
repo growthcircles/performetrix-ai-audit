@@ -1,6 +1,5 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/service';
 import { logAccess } from '@/lib/data/audit';
 import { sendNewSignupNotification } from '@/lib/email';
@@ -28,22 +27,32 @@ function buildConfirmUrl(tokenHash: string, next: string): string {
   return `${appUrl}/auth/confirm?token_hash=${tokenHash}&type=invite&next=${encodeURIComponent(next)}`;
 }
 
-export async function signup(formData: FormData) {
+export type SignupResult =
+  | { ok: true; confirmUrl: string }
+  | { ok: false; error: string };
+
+// Returns a result instead of calling redirect() to /auth/confirm: redirect()
+// from a Server Action performs a client-side (RSC) navigation when JS is
+// available, and /auth/confirm is a Route Handler, not a page - that
+// mismatch is what caused the "bounced back to login" bug. The caller does
+// a real window.location navigation instead, which behaves exactly like a
+// user clicking the link in an email (the flow this mirrors).
+export async function signup(formData: FormData): Promise<SignupResult> {
   const name = String(formData.get('name') ?? '').trim();
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const companyName = String(formData.get('companyName') ?? '').trim();
 
   if (!name || !email || !companyName) {
-    redirect(`/signup?error=${encodeURIComponent('Name, work email, and company name are all required.')}`);
+    return { ok: false, error: 'Name, work email, and company name are all required.' };
   }
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    redirect(`/signup?error=${encodeURIComponent('Enter a valid email address.')}`);
+    return { ok: false, error: 'Enter a valid email address.' };
   }
 
   const domain = email.split('@')[1];
   if (PERSONAL_EMAIL_DOMAINS.has(domain)) {
-    redirect(`/signup?error=${encodeURIComponent('Please sign up with your work email address, not a personal one.')}`);
+    return { ok: false, error: 'Please sign up with your work email address, not a personal one.' };
   }
 
   const service = createServiceClient();
@@ -67,7 +76,7 @@ export async function signup(formData: FormData) {
     // Most likely: an account with this email already exists. Don't leave
     // a dangling, CHRO-less organisation behind from the failed attempt.
     await service.from('customers').delete().eq('id', customer.id);
-    redirect(`/signup?error=${encodeURIComponent(linkError.message)}`);
+    return { ok: false, error: linkError.message };
   }
 
   await logAccess({
@@ -81,5 +90,5 @@ export async function signup(formData: FormData) {
   // Best-effort - a delivery failure shouldn't block the CHRO's own signup.
   await sendNewSignupNotification({ name, email, companyName });
 
-  redirect(buildConfirmUrl(linkData.properties.hashed_token, '/set-password'));
+  return { ok: true, confirmUrl: buildConfirmUrl(linkData.properties.hashed_token, '/set-password') };
 }

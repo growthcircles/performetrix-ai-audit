@@ -6,6 +6,7 @@ import { submitAssessmentAction } from './actions';
 import { Logo } from '@/components/Logo';
 
 type Step =
+  | { kind: 'welcome' }
   | { kind: 'intro'; section: 'forced' | 'scenario' }
   | { kind: 'forced'; pillarKey: string; index: number; pos: number; total: number }
   | { kind: 'scenario'; pillarKey: string; index: number; pos: number; total: number };
@@ -34,7 +35,7 @@ function buildSteps(pillars: PublicPillar[]): Step[] {
       .flatMap((p) => p.scenarios!.map((_, index) => ({ pillarKey: p.key, index }))),
   );
 
-  const steps: Step[] = [{ kind: 'intro', section: 'forced' }];
+  const steps: Step[] = [{ kind: 'welcome' }, { kind: 'intro', section: 'forced' }];
   forcedItems.forEach((item, i) =>
     steps.push({ kind: 'forced', pillarKey: item.pillarKey, index: item.index, pos: i + 1, total: forcedItems.length }),
   );
@@ -51,6 +52,32 @@ function buildInitialSession(pillars: PublicPillar[]): Session {
     session[p.key] = p.type === 'forced' ? p.blocks!.map(() => ({})) : p.scenarios!.map(() => null);
   });
   return session;
+}
+
+function welcomeContent(leaderName: string, orgName: string, totalQuestions: number) {
+  return {
+    eyebrow: 'FutureReady Leadership Diagnostic',
+    heading: `Welcome, ${leaderName}`,
+    body: (
+      <>
+        <p className="sub">
+          {orgName ? `${orgName} has` : 'Your organisation has'} asked you to complete this readiness
+          diagnostic as part of its leadership development programme.
+        </p>
+        <p className="sub">
+          It measures four pillars of leadership readiness — Succession-Ready, Judgment-Ready,
+          Relationship-Ready, and Globally-Ready — each built from three underlying sub-dimensions. It&apos;s
+          a self-assessment: a diagnostic for where to focus, not a test with a pass or fail.
+        </p>
+        <p className="sub">
+          There are {totalQuestions} short screens across two sections, one ranking exercise and one set
+          of judgment scenarios, and it should take about 10&ndash;15 minutes. Your individual results are
+          confidential: only your CHRO and Shiva Venkateswaran of Growth Circles see them, and nothing is
+          shared with colleagues.
+        </p>
+      </>
+    ),
+  };
 }
 
 function introContent(section: 'forced' | 'scenario', total: number) {
@@ -94,10 +121,12 @@ function introContent(section: 'forced' | 'scenario', total: number) {
 
 export default function AssessmentFlow({
   token,
+  leaderName,
   orgName,
   pillars,
 }: {
   token: string;
+  leaderName: string;
   orgName: string;
   pillars: PublicPillar[];
 }) {
@@ -132,7 +161,15 @@ export default function AssessmentFlow({
   let body: ReactNode = null;
   let nextLabel = isLast ? 'Submit' : 'Next';
 
-  if (step.kind === 'intro') {
+  if (step.kind === 'welcome') {
+    canNext = true;
+    nextLabel = 'Begin';
+    const totalQuestions = steps.filter((s) => s.kind === 'forced' || s.kind === 'scenario').length;
+    const content = welcomeContent(leaderName, orgName, totalQuestions);
+    stepLabel = content.eyebrow;
+    heading = content.heading;
+    body = content.body;
+  } else if (step.kind === 'intro') {
     canNext = true;
     nextLabel = 'Continue';
     const total = step.section === 'forced'

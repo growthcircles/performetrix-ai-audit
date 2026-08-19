@@ -36,5 +36,12 @@ export default async function AssessmentPage(props: PageProps<'/a/[token]'>) {
     );
   }
 
-  return <AssessmentFlow token={token} orgName={leader.orgName} pillars={getPublicAssessment()} />;
+  return (
+    <AssessmentFlow
+      token={token}
+      leaderName={leader.name}
+      orgName={leader.orgName}
+      pillars={getPublicAssessment()}
+    />
+  );
 }
