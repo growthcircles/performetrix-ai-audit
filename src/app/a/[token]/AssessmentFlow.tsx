@@ -72,8 +72,8 @@ function welcomeContent(leaderName: string, orgName: string, totalQuestions: num
         <p className="sub">
           There are {totalQuestions} short screens across two sections, one ranking exercise and one set
           of judgment scenarios, and it should take about 10&ndash;15 minutes. Your individual results are
-          confidential: only your CHRO and Shiva Venkateswaran of Growth Circles see them, and nothing is
-          shared with colleagues.
+          confidential: only your CHRO and the executive coach at FutureReady Leadership see them, and
+          nothing is shared with colleagues.
         </p>
       </>
     ),
