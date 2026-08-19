@@ -28,7 +28,7 @@ export default function ReportView({
         <a className="back-link" href={backHref}>&larr; Back to console</a>
         {isPreview && (
           <div className="form-error" style={{ marginBottom: 16 }}>
-            Preview only — sample data, not a real submission.
+            Preview only: sample data, not a real submission.
           </div>
         )}
         <div className="brand-row">

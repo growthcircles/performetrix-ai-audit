@@ -56,17 +56,17 @@ function buildInitialSession(pillars: PublicPillar[]): Session {
 
 function welcomeContent(leaderName: string, orgName: string, totalQuestions: number) {
   return {
-    eyebrow: 'FutureReady Leadership Diagnostic',
+    eyebrow: 'FutureReady Leadership Assessment',
     heading: `Welcome, ${leaderName}`,
     body: (
       <>
         <p className="sub">
-          {orgName ? `${orgName} has` : 'Your organisation has'} asked you to complete this readiness
-          diagnostic as part of its leadership development programme.
+          {orgName ? `${orgName} has` : 'Your organisation has'} asked you to complete this FutureReady
+          Leadership Assessment as part of its leadership development programme.
         </p>
         <p className="sub">
-          It measures four pillars of leadership readiness — Succession-Ready, Judgment-Ready,
-          Relationship-Ready, and Globally-Ready — each built from three underlying sub-dimensions. It&apos;s
+          It measures four pillars of leadership readiness: Succession-Ready, Judgment-Ready,
+          Relationship-Ready, and Globally-Ready - each built from three underlying sub-dimensions. It&apos;s
           a self-assessment: a diagnostic for where to focus, not a test with a pass or fail.
         </p>
         <p className="sub">
@@ -88,7 +88,7 @@ function introContent(section: 'forced' | 'scenario', total: number) {
       body: (
         <>
           <p className="sub">
-            In this section, each screen shows you three statements. Rank them <em>in the order they describe you</em> — most like you first, least like you last.
+            In this section, each screen shows you three statements. Rank them <em>in the order they describe you</em> - most like you first, least like you last.
           </p>
           <p className="sub">
             There&apos;s no &quot;correct&quot; ranking, and no option to rate a statement as low or high on its own. You&apos;re forced to choose between things that might all feel somewhat true, which is deliberate: it&apos;s what keeps the results honest rather than everyone scoring themselves highly across the board.
@@ -106,7 +106,7 @@ function introContent(section: 'forced' | 'scenario', total: number) {
     body: (
       <>
         <p className="sub">
-          This section presents realistic leadership situations, each with four possible responses. Read the situation, then pick the single response <em>closest to how you&apos;d actually act</em> — not how you think you should act.
+          This section presents realistic leadership situations, each with four possible responses. Read the situation, then pick the single response <em>closest to how you&apos;d actually act</em> - not how you think you should act.
         </p>
         <p className="sub">
           There&apos;s no correct answer. The situations are designed to be ambiguous on purpose, so go with your genuine instinct rather than the &quot;safest-sounding&quot; option.
