@@ -106,7 +106,7 @@ export default async function ChroConsolePage() {
 
         <div style={{ textAlign: 'center', marginTop: 16 }}>
           <a
-            className="btn btn-ghost"
+            className="btn"
             href="https://cal.com/growthcircles/30min"
             target="_blank"
             rel="noopener noreferrer"
