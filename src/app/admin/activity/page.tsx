@@ -24,6 +24,7 @@ const ACTION_LABELS: Record<string, string> = {
   update_chro_email: 'updated CHRO email',
   delete_chro: 'deleted CHRO account',
   delete_customer: 'deleted customer',
+  self_signup: 'self-signed-up',
 };
 
 export default async function ActivityLogPage() {
