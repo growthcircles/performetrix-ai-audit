@@ -1,14 +1,14 @@
-# FutureReady Admin Portal — Build Brief
+# PerforMetrix Admin Portal — Build Brief
 
-For use with Claude Code. This covers what the application needs to do, the data it needs to hold, and the scoring logic that already exists and just needs implementing correctly. A working single-file HTML prototype of the assessment and report flow already exists (FutureReady_Prototype.html), it's a good visual and interaction reference, but it has no backend, no persistence, and no multi-tenancy, all of which this build needs to add.
+For use with Claude Code. This covers what the application needs to do, the data it needs to hold, and the scoring logic that already exists and just needs implementing correctly. A working single-file HTML prototype of the assessment and report flow already exists (PerforMetrix_Prototype.html), it's a good visual and interaction reference, but it has no backend, no persistence, and no multi-tenancy, all of which this build needs to add.
 
 ---
 
 ## What this is
 
-A multi-tenant web application for administering the FutureReady leadership assessment across multiple customer organisations. Three user types:
+A multi-tenant web application for administering the PerforMetrix AI Audit assessment across multiple customer organisations. Three user types:
 
-- **Shiva (super admin)**: sees every customer, every CHRO, every leader, every submission, across the whole business
+- **PerforMetrix (super admin)**: sees every customer, every CHRO, every leader, every submission, across the whole business
 - **CHRO**: logs into their own organisation's view only. Adds leaders, generates confidential assessment links, receives completed reports
 - **Leader**: never logs in. Receives a one-time link, completes the assessment anonymously with respect to other leaders, sees only a confirmation on submit, not their own score
 
@@ -37,8 +37,8 @@ A multi-tenant web application for administering the FutureReady leadership asse
 3. Leader opens the link, no login required, completes the assessment, submits
 4. On submit: scores compute server-side, submission stored, leader sees a simple confirmation screen only
 5. CHRO gets notified (email) that a report is ready, can view it in their dashboard
-6. Shiva gets a copy of every report across every customer, plus a cross-customer view showing completion rates and score patterns
-7. Shiva can also generate a standalone preview/demo report with sample data, for sales conversations, without it counting as a real customer submission
+6. PerforMetrix gets a copy of every report across every customer, plus a cross-customer view showing completion rates and score patterns
+7. PerforMetrix can also generate a standalone preview/demo report with sample data, for sales conversations, without it counting as a real customer submission
 
 ---
 
@@ -65,7 +65,7 @@ Four pillars: Succession-Ready, Judgment-Ready, Relationship-Ready, Globally-Rea
 - Average of the four pillar scores
 - Priority gap threshold: pillar score ≤ 80 gets flagged
 
-The actual statement text, scenario text, option text, and dimension-to-score mappings are all in FutureReady_Assessment_v2.md and are also fully implemented in the JS of FutureReady_Prototype.html (see the `SUCCESSION`, `JUDGMENT`, `RELATIONSHIP`, `GLOBAL` constants, and the `scoreSession` function). That scoring logic can likely be lifted close to as-is and moved server-side.
+The actual statement text, scenario text, option text, and dimension-to-score mappings are all in PerforMetrix_Assessment_v2.md and are also fully implemented in the JS of PerforMetrix_Prototype.html (see the `SUCCESSION`, `JUDGMENT`, `RELATIONSHIP`, `GLOBAL` constants, and the `scoreSession` function). That scoring logic can likely be lifted close to as-is and moved server-side.
 
 ---
 
@@ -75,14 +75,14 @@ The actual statement text, scenario text, option text, and dimension-to-score ma
 - One-line plain-language description under every sub-dimension (already written, see `SUBDIM_DESC` in the prototype)
 - Organisational impact text per pillar, shown more prominently when that pillar is flagged (already written, see `IMPACT` in the prototype)
 - A short legend explaining how to read the score and what the priority threshold means
-- Clear indication of who the report was delivered to (which CHRO, which organisation) and that Shiva received a copy
+- Clear indication of who the report was delivered to (which CHRO, which organisation) and that PerforMetrix received a copy
 
 ---
 
 ## Non-functional requirements
 
 - **Confidentiality is the core design constraint.** A leader's individual answers and scores must never be visible to another leader, and a CHRO must never see another customer's data
-- Proper authentication for CHRO and Shiva logins, no login for leaders, just the token-based link
+- Proper authentication for CHRO and PerforMetrix logins, no login for leaders, just the token-based link
 - Email delivery for the CHRO's "report ready" notification. Sending the leader their initial link stays a manual step CHROs do themselves, at least for the first version, unless you want that automated too
 - This holds real assessment data on named executives, so standard data protection practice applies, encryption at rest, access logging, a way to delete a leader's data on request
 
@@ -97,3 +97,4 @@ The actual statement text, scenario text, option text, and dimension-to-score ma
 - Basic email notification when a report is ready
 
 Leave for a later phase: automated link delivery to leaders, the stakeholder 360 add-on for the paid coaching phase, any billing or self-serve customer onboarding.
+

@@ -12,7 +12,7 @@ export default async function SignupPage() {
     <div className="theme-ink">
       <main className="shell" style={{ maxWidth: 380 }}>
         <div style={{ marginBottom: 22 }}><Logo height={40} /></div>
-        <div className="h1" style={{ fontSize: 26 }}>Run the FutureReady Diagnostic</div>
+        <div className="h1" style={{ fontSize: 26 }}>Run the PerforMetrix Diagnostic</div>
         <p className="sub">
           Free, no obligation. Set up your organisation and get straight into your portal, ready to add
           leaders and generate assessment links.
@@ -23,3 +23,4 @@ export default async function SignupPage() {
     </div>
   );
 }
+

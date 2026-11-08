@@ -1,0 +1,26 @@
+<div class="panel">
+  <div class="panel-title">Admin Dashboard</div>
+  <div class="sub">PerforMetrix AI Audit — signups, survey completions, and reports.</div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Organisations (<%= reportList.length %>)</div>
+  <% if (reportList.length === 0) { %>
+    <div class="empty-note">No organisations yet.</div>
+  <% } else { %>
+    <% reportList.forEach(function(item) { %>
+      <div class="leader-row">
+        <div>
+          <div class="leader-name"><%= item.user.name %></div>
+          <div class="leader-meta"><%= item.user.email %></div>
+        </div>
+        <div class="row-actions">
+          <%= item.hasCompleted ? '<span class="status-pill status-done">Completed survey</span>' : '<span class="status-pill status-pending">Not started</span>' %>
+          <% if (item.hasCompleted) { %>
+            <a href="/report/<%= item.submission.id %>" class="btn btn-ghost" style="margin-left:8px;">View report</a>
+          <% } %>
+        </div>
+      </div>
+    <% }); %>
+  <% } %>
+</div>

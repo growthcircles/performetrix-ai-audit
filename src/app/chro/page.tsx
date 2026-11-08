@@ -23,9 +23,9 @@ export default async function ChroConsolePage() {
           <Logo />
           <span className="eyebrow">CHRO Console</span>
         </div>
-        <div className="h1">FutureReady Leadership Diagnostic Assessment</div>
+        <div className="h1">PerforMetrix AI Audit Diagnostic Assessment</div>
         <p className="sub">
-          Generate a confidential link for each leader. Only you and Shiva Venkateswaran of Growth
+          Generate a confidential link for each leader. Only you and PerforMetrix of Growth
           Circles see individual results. Leaders never see each other&apos;s scores.
         </p>
 
@@ -90,7 +90,7 @@ export default async function ChroConsolePage() {
           ))}
           <div className="confidentiality-note">
             Each link is unique to one leader and carries no visible identifying detail. Completed
-            results are delivered to you as CHRO, with a copy to Shiva Venkateswaran of Growth Circles
+            results are delivered to you as CHRO, with a copy to PerforMetrix of PerforMetrix
             for follow-up preparation. Nothing is shared between leaders.
           </div>
         </div>
@@ -100,7 +100,7 @@ export default async function ChroConsolePage() {
         </a>
 
         <div className="support-note">
-          Questions? Email <a href="mailto:shiva@growth-circles.com">shiva@growth-circles.com</a>, happy
+          Questions? Email <a href="mailto:shiva@performetrix.ai">shiva@performetrix.ai</a>, happy
           to help.
         </div>
 
@@ -122,3 +122,4 @@ export default async function ChroConsolePage() {
     </div>
   );
 }
+

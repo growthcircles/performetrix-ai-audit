@@ -1,0 +1,16 @@
+<nav style="display:flex;align-items:center;justify-content:space-between;padding:24px 32px;border-bottom:1px solid var(--ink-line);margin-bottom:40px;background:var(--ink-2);">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="/logo.png" alt="PerforMetrix" height="32" style="width:auto;" />
+    <span style="font-family:var(--font-display);font-weight:600;font-size:20px;color:var(--brass-light);">PerforMetrix</span>
+  </div>
+  <div style="display:flex;gap:16px;align-items:center;">
+    <% if (user) { %>
+      <a href="/survey" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-text-dim);">Diagnostic</a>
+      <a href="/admin" style="font-family:var(--font-mono);font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink-text-dim);">Admin</a>
+      <a href="/logout" class="btn-ghost" style="padding:6px 12px;font-size:11px;">Sign out</a>
+    <% } else { %>
+      <a href="/login" class="btn">Sign in</a>
+      <a href="/signup" class="btn-ghost" style="padding:6px 12px;">Create account</a>
+    <% } %>
+  </div>
+</nav>

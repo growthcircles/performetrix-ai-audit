@@ -37,13 +37,13 @@ export default function ReportView({
         </div>
         <div className="h1">{leaderName}</div>
         <div className="delivery-line">
-          Delivered to {chroName} &middot; {orgName} &nbsp;&middot;&nbsp; cc Shiva Venkateswaran
+          Delivered to {chroName} &middot; {orgName} &nbsp;&middot;&nbsp; cc PerforMetrix
         </div>
 
         <div className="legend-panel">
           <div className="legend-title">How to read this report</div>
           <ul className="legend-list">
-            <li>{leaderName}&apos;s overall FutureReady score is the average of the four pillar scores below, each scored out of 100.</li>
+            <li>{leaderName}&apos;s overall PerforMetrix score is the average of the four pillar scores below, each scored out of 100.</li>
             <li>Each pillar breaks into three sub-dimensions. These show what is actually driving that pillar&apos;s number, not just the number itself.</li>
             <li>
               This is a self-assessment only. It is a diagnostic for where to focus, not a final verdict, a fuller
@@ -63,7 +63,7 @@ export default function ReportView({
         <div className="score-hero">
           <div className="score-big">{scores.overall}</div>
           <div>
-            <div className="score-big-label">The overall FutureReady score for {leaderName}</div>
+            <div className="score-big-label">The overall PerforMetrix score for {leaderName}</div>
             <div style={{ fontSize: 12.5, opacity: 0.6, marginTop: 4 }}>
               Self-assessment only. Stakeholder 360 runs once coaching begins.
             </div>
@@ -145,3 +145,4 @@ export default function ReportView({
     </div>
   );
 }
+

@@ -56,13 +56,13 @@ function buildInitialSession(pillars: PublicPillar[]): Session {
 
 function welcomeContent(leaderName: string, orgName: string, totalQuestions: number) {
   return {
-    eyebrow: 'FutureReady Leadership Assessment',
+    eyebrow: 'PerforMetrix AI Audit',
     heading: `Welcome, ${leaderName}`,
     body: (
       <>
         <p className="sub">
-          {orgName ? `${orgName} has` : 'Your organisation has'} asked you to complete this FutureReady
-          Leadership Assessment as part of its leadership development programme.
+          {orgName ? `${orgName} has` : 'Your organisation has'} asked you to complete this PerforMetrix AI Audit
+          as part of its leadership development programme.
         </p>
         <p className="sub">
           It measures four pillars of leadership readiness: Succession-Ready, Judgment-Ready,

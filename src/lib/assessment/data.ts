@@ -1,6 +1,6 @@
 import 'server-only';
 
-// Canonical assessment content, lifted from FutureReady_Prototype.html. This
+// Canonical assessment content, lifted from PerforMetrix_Prototype.html. This
 // module includes the scoring key (option -> sub-dimension values), so it
 // must never be imported into a Client Component - the `server-only` import
 // above turns that into a build error instead of a silent leak. Pages
@@ -171,3 +171,4 @@ export const SUBDIM_DESC: Record<string, Record<string, string>> = {
     awareness: 'Notices when a home-market assumption is shaping a decision, and checks it against the room.',
   },
 };
+

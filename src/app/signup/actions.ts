@@ -2,7 +2,7 @@
 
 import { createServiceClient } from '@/lib/supabase/service';
 import { logAccess } from '@/lib/data/audit';
-import { sendNewSignupNotification } from '@/lib/email';
+import { sendNewSignupNotification, sendVerifyEmailAddress } from '@/lib/email';
 
 // Common free/personal webmail providers - a work-email signal, not a
 // security boundary. Blocklist rather than allowlist, since an allowlist
@@ -24,23 +24,26 @@ const PERSONAL_EMAIL_DOMAINS = new Set([
 
 function buildConfirmUrl(tokenHash: string, next: string): string {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? '';
-  return `${appUrl}/auth/confirm?token_hash=${tokenHash}&type=invite&next=${encodeURIComponent(next)}`;
+  return `${appUrl}/auth/confirm?token_hash=${tokenHash}&type=signup&next=${encodeURIComponent(next)}`;
 }
 
 export type SignupResult =
-  | { ok: true; confirmUrl: string }
+  | { ok: true }
   | { ok: false; error: string };
 
-// Returns a result instead of calling redirect() to /auth/confirm: redirect()
-// from a Server Action performs a client-side (RSC) navigation when JS is
-// available, and /auth/confirm is a Route Handler, not a page - that
-// mismatch is what caused the "bounced back to login" bug. The caller does
-// a real window.location navigation instead, which behaves exactly like a
-// user clicking the link in an email (the flow this mirrors).
+// On success, this does NOT hand back a confirmUrl to auto-navigate to -
+// unlike the old passwordless 'invite' flow, the whole point here is that
+// clicking the emailed link is what proves the CHRO actually owns this
+// address, so the browser has to wait for a real click, not fast-forward
+// past it. /auth/confirm (unchanged) verifies the token and, in the same
+// call, establishes the session - so clicking the link both confirms the
+// email and signs the CHRO straight into /chro, no separate step.
 export async function signup(formData: FormData): Promise<SignupResult> {
   const name = String(formData.get('name') ?? '').trim();
   const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const companyName = String(formData.get('companyName') ?? '').trim();
+  const password = String(formData.get('password') ?? '');
+  const confirm = String(formData.get('confirm') ?? '');
 
   if (!name || !email || !companyName) {
     return { ok: false, error: 'Name, work email, and company name are all required.' };
@@ -55,6 +58,13 @@ export async function signup(formData: FormData): Promise<SignupResult> {
     return { ok: false, error: 'Please sign up with your work email address, not a personal one.' };
   }
 
+  if (password.length < 8) {
+    return { ok: false, error: 'Password must be at least 8 characters.' };
+  }
+  if (password !== confirm) {
+    return { ok: false, error: 'Passwords do not match.' };
+  }
+
   const service = createServiceClient();
 
   const { data: customer, error: customerError } = await service
@@ -65,8 +75,9 @@ export async function signup(formData: FormData): Promise<SignupResult> {
   if (customerError) throw new Error(customerError.message);
 
   const { data: linkData, error: linkError } = await service.auth.admin.generateLink({
-    type: 'invite',
+    type: 'signup',
     email,
+    password,
     options: {
       data: { role: 'chro', customer_id: customer.id, name },
     },
@@ -87,8 +98,19 @@ export async function signup(formData: FormData): Promise<SignupResult> {
     detail: `${name} (${email}) for ${companyName}`,
   });
 
-  // Best-effort - a delivery failure shouldn't block the CHRO's own signup.
+  const confirmUrl = buildConfirmUrl(linkData.properties.hashed_token, '/');
+
+  const verifyResult = await sendVerifyEmailAddress({ to: email, name, confirmUrl });
+  if (!verifyResult.ok) {
+    // The org and auth user already exist at this point - surfacing the
+    // email failure lets the CHRO know to contact support rather than
+    // wonder why nothing ever arrives, without rolling back real state.
+    return { ok: false, error: `Account created, but the verification email couldn't be sent: ${verifyResult.error}` };
+  }
+
+  // Best-effort - fires on org creation regardless of verification status,
+  // a delivery failure shouldn't block the CHRO's own signup.
   await sendNewSignupNotification({ name, email, companyName });
 
-  return { ok: true, confirmUrl: buildConfirmUrl(linkData.properties.hashed_token, '/set-password') };
+  return { ok: true };
 }

@@ -1,36 +1,66 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PerforMetrix AI Audit
 
-## Getting Started
+A standalone maturity diagnostic web app for CHROs, under the PerforMetrix brand. Completely separate from any other app — its own URL, database, and auth system.
 
-First, run the development server:
+## What it does
+
+A CHRO clicks a link from your email outreach, arrives at the portal, creates an account with email and password, takes the 15-question AI maturity diagnostic (about 10 minutes), and receives a detailed, visually rich report showing:
+
+- Overall maturity score (0-100) and band
+- Scores for five dimensions: Vision and strategy, Criteria and goals, Manager capability, Accountability and guardrails, Culture and trust
+- Per-dimension maturity band (Ad hoc / Reactive / Building / Embedded / Leading) with a prescriptive next step
+
+You (the admin) can log in to see who signed up, who took the survey, and view their reports.
+
+## Setup
+
+### Prerequisites
+
+Node.js v20+. No external API keys required (Supabase, Resend, etc. are not used).
+
+### Installation
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cd "C:\Vibe Coded Projects\PerforMetrix AI Audit"
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Running
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm start
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The app runs at `http://localhost:3000`.
 
-## Learn More
+### Admin account
 
-To learn more about Next.js, take a look at the following resources:
+Create an admin account by setting environment variables:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+set ADMIN_EMAIL=admin@yourorg.com
+set ADMIN_PASSWORD=securepassword123
+set ADMIN_NAME=Your Name
+npm start
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+If you don't set these, the first person to sign up gets a `chro` account only. To access `/admin`, either seed an admin account or manually edit `data/db.json` to change a user's role to `admin`.
 
-## Deploy on Vercel
+### Data storage
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+All data is stored in `data/db.json` — a simple JSON file. No external database required. Back up this file to preserve signups and reports.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Architecture
+
+- **Server:** Express.js
+- **Auth:** Express sessions with bcrypt password hashing
+- **Database:** JSON file (`data/db.json`)
+- **Views:** EJS templates
+- **Styling:** Custom CSS matching the PerforMetrix brand (dark ink theme, brass accents, Fraunces/Inter typefaces)
+- **Deployment:** Any Node.js hosting platform
+
+## Survey
+
+15 behaviour-based questions across five dimensions, mixed together in random order (no dimension headers visible during the survey). Each question asks "How common?" on a 1-5 scale (Never → Always).
+
+The report clusters responses back under dimension headings with per-dimension scores, bands, and next steps. An overall composite score (mean of the five dimensions) tracks progress over time.

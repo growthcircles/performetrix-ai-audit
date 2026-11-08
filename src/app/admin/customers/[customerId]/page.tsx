@@ -74,6 +74,7 @@ export default async function CustomerDetailPage(props: PageProps<'/admin/custom
                   <>
                     <span className="status-pill status-done">Completed</span>
                     <a className="btn btn-ghost" href={`/reports/${l.id}`}>View report</a>
+                    <a className="btn btn-ghost" href={`/reports/${l.id}/360`}>View 360 report</a>
                   </>
                 ) : (
                   <span className="status-pill status-pending">Pending</span>

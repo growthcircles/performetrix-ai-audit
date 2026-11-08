@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect } from 'react';
+import { useActionState } from 'react';
 import type { SignupResult } from '@/app/signup/actions';
 
 export function SignupForm({ action }: { action: (formData: FormData) => Promise<SignupResult> }) {
@@ -9,17 +9,17 @@ export function SignupForm({ action }: { action: (formData: FormData) => Promise
     null,
   );
 
-  useEffect(() => {
-    // A real browser navigation, not next/navigation's redirect() - that
-    // one performs a client-side (RSC) transition when JS is available,
-    // which doesn't work against /auth/confirm since it's a Route Handler
-    // rather than a page.
-    if (state?.ok) {
-      window.location.href = state.confirmUrl;
-    }
-  }, [state]);
-
-  const submitting = pending || state?.ok;
+  if (state?.ok) {
+    return (
+      <div>
+        <div className="confirm-mark">&#10003;</div>
+        <p className="sub" style={{ margin: 0 }}>
+          Check your email to verify your address and finish setting up your account. The link signs
+          you straight into your portal, no separate login step needed.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <form action={formAction}>
@@ -35,9 +35,17 @@ export function SignupForm({ action }: { action: (formData: FormData) => Promise
         <label htmlFor="companyName">Company name</label>
         <input id="companyName" name="companyName" type="text" required autoComplete="organization" />
       </div>
+      <div className="field">
+        <label htmlFor="password">Password</label>
+        <input id="password" name="password" type="password" required minLength={8} autoComplete="new-password" />
+      </div>
+      <div className="field">
+        <label htmlFor="confirm">Confirm password</label>
+        <input id="confirm" name="confirm" type="password" required minLength={8} autoComplete="new-password" />
+      </div>
       {state && !state.ok && <p className="form-error">{state.error}</p>}
-      <button type="submit" className="btn" disabled={submitting}>
-        {submitting ? 'Setting up your account…' : 'Get started'}
+      <button type="submit" className="btn" disabled={pending}>
+        {pending ? 'Setting up your account…' : 'Get started'}
       </button>
     </form>
   );

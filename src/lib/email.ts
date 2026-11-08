@@ -37,11 +37,11 @@ export async function sendReportReadyEmail({
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL,
       to,
-      subject: `FutureReady report ready: ${leaderName}`,
+      subject: `PerforMetrix report ready: ${leaderName}`,
       html: `
-        <p>A FutureReady readiness report is ready for <strong>${safeLeaderName}</strong> at ${safeOrgName}.</p>
+        <p>A PerforMetrix readiness report is ready for <strong>${safeLeaderName}</strong> at ${safeOrgName}.</p>
         <p><a href="${reportUrl}">View the report</a></p>
-        <p>A copy has also been shared with Shiva Venkateswaran for coaching preparation.</p>
+        <p>A copy has also been shared with PerforMetrix for coaching preparation.</p>
       `,
     });
     if (error) {
@@ -81,10 +81,10 @@ export async function sendThreeSixtyReportEmail({
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL,
       to,
-      subject: `Your FutureReady 360 report is ready`,
+      subject: `Your PerforMetrix 360 report is ready`,
       html: `
         <p>Hi ${safeLeaderName},</p>
-        <p>Your FutureReady 360 report is ready, gathering input from your manager, peers, and direct reports at ${safeOrgName} alongside your own self-assessment.</p>
+        <p>Your PerforMetrix 360 report is ready, gathering input from your manager, peers, and direct reports at ${safeOrgName} alongside your own self-assessment.</p>
         <p><a href="${reportUrl}">View your report</a></p>
         <p>This is a private link intended only for you.</p>
       `,
@@ -97,6 +97,49 @@ export async function sendThreeSixtyReportEmail({
     return { ok: true };
   } catch (err) {
     console.error('Failed to send 360 report email:', err);
+    return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
+  }
+}
+
+// Unlike sendNewSignupNotification, this is the ONLY way a self-signed-up
+// CHRO can ever get into their account - clicking this link both confirms
+// their email and signs them in (see src/app/auth/confirm/route.ts), so a
+// delivery failure here is reported back to the caller rather than swallowed.
+export async function sendVerifyEmailAddress({
+  to,
+  name,
+  confirmUrl,
+}: {
+  to: string;
+  name: string;
+  confirmUrl: string;
+}): Promise<{ ok: boolean; error?: string }> {
+  if (!resend || !process.env.RESEND_FROM_EMAIL) {
+    return { ok: false, error: 'Email is not configured.' };
+  }
+
+  const safeName = escapeHtml(name);
+
+  try {
+    const { data, error } = await resend.emails.send({
+      from: process.env.RESEND_FROM_EMAIL,
+      to,
+      subject: `Verify your email to activate your PerforMetrix account`,
+      html: `
+        <p>Hi ${safeName},</p>
+        <p>Thanks for setting up PerforMetrix. Verify this email address to activate your account and get straight into your portal.</p>
+        <p><a href="${confirmUrl}">Verify email &amp; sign in</a></p>
+        <p>This link is only valid for a limited time and can only be used once.</p>
+      `,
+    });
+    if (error) {
+      console.error('Resend rejected verify-email email:', error);
+      return { ok: false, error: error.message };
+    }
+    console.log('Sent verify-email email', data?.id, 'to', to);
+    return { ok: true };
+  } catch (err) {
+    console.error('Failed to send verify-email email:', err);
     return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
@@ -126,8 +169,8 @@ export async function sendNewSignupNotification({
   try {
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL,
-      to: 'shiva@growth-circles.com',
-      subject: `New FutureReady signup: ${companyName}`,
+      to: 'shiva@performetrix.ai',
+      subject: `New PerforMetrix signup: ${companyName}`,
       html: `
         <p>A new organisation signed up through the self-service form.</p>
         <p>
@@ -173,10 +216,10 @@ export async function sendChroInviteEmail({
     const { data, error } = await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL,
       to,
-      subject: `You've been added to FutureReady - ${orgName}`,
+      subject: `You've been added to PerforMetrix - ${orgName}`,
       html: `
         <p>Hi ${safeName},</p>
-        <p>You've been set up as the FutureReady admin for <strong>${safeOrgName}</strong>.</p>
+        <p>You've been set up as the PerforMetrix admin for <strong>${safeOrgName}</strong>.</p>
         <p><a href="${inviteUrl}">Set your password to get started</a></p>
         <p>This link is only valid for a limited time and can only be used once.</p>
       `,
@@ -192,3 +235,4 @@ export async function sendChroInviteEmail({
     return { ok: false, error: err instanceof Error ? err.message : 'Unknown error' };
   }
 }
+
