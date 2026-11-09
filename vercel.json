@@ -6,7 +6,6 @@
   "installCommand": "npm install",
   "outputDirectory": ".next",
   "env": {
-    "SESSION_SECRET": "@performetrix-session-secret",
     "ADMIN_EMAIL": "@admin-email",
     "ADMIN_PASSWORD": "@admin-password",
     "ADMIN_NAME": "@admin-name",
