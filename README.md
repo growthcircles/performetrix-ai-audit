@@ -1,4 +1,4 @@
-# PerforMetrix AI Audit
+# PerforMetrix AI Audit Diagnostic
 
 A standalone maturity diagnostic web app for CHROs, under the PerforMetrix brand. Completely separate from any other app — its own URL, database, and auth system.
 
