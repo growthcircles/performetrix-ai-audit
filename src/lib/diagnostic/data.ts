@@ -130,7 +130,7 @@ export const MATURITY_BANDS = [
     name: 'Ad hoc',
     rangeLabel: '0-39',
     description:
-      'No clear position yet. Leaders and managers are improvising as AI use shows up.',
+      'No shared position on AI yet. Performance is managed case by case, and managers improvise as AI use shows up.',
     nextStep: null,
   },
   {
@@ -138,7 +138,7 @@ export const MATURITY_BANDS = [
     name: 'Reactive',
     rangeLabel: '40-59',
     description:
-      'Fixing rating disputes and distrust as they come up. Trust and guardrails lag behind use.',
+      'Problems are handled as they arise. Trust and guardrails lag behind how AI is actually being used.',
     nextStep: null,
   },
   {
@@ -146,7 +146,7 @@ export const MATURITY_BANDS = [
     name: 'Building',
     rangeLabel: '60-74',
     description:
-      'Criteria and training drafted, not yet embedded in normal practice.',
+      'Criteria and training are taking shape, but they are not yet part of everyday performance conversations.',
     nextStep: null,
   },
   {
@@ -154,7 +154,7 @@ export const MATURITY_BANDS = [
     name: 'Embedded',
     rangeLabel: '75-89',
     description:
-      'Guardrails and frameworks in regular use, still maturing into habit.',
+      'Guardrails and frameworks are in regular use. The remaining work is consistency across teams and levels.',
     nextStep: null,
   },
   {
@@ -162,7 +162,7 @@ export const MATURITY_BANDS = [
     name: 'Leading',
     rangeLabel: '90-100',
     description:
-      'Continuously refining, with a culture of responsible AI usage across the organisation.',
+      'Responsible AI use is embedded, and the organisation keeps refining how performance is judged as AI changes.',
     nextStep: null,
   },
 ];
@@ -178,3 +178,29 @@ export function bandForScore(score: number) {
 export function dimensionForKey(key: string) {
   return DIMENSIONS.find((d) => d.key === key);
 }
+
+export const DIMENSION_IMPACT: Record<string, string> = {
+  vision:
+    'No shared answer to what AI is for. Teams improvise independently, quality is inconsistent, and there is no way to measure whether AI investment is producing results.',
+  criteria:
+    'No agreed standard for what good AI-assisted work looks like. Reviews become subjective, rating disputes go unresolved, and two managers can judge the same work differently.',
+  manager:
+    'Managers cannot coach their teams on AI use or judge whether output is good. Poor work passes review, good work gets questioned, and people learn to game the process.',
+  accountability:
+    'Nobody owns AI-driven decisions. When something goes wrong, a poor call or a compliance issue, there is no clear answer to who was responsible.',
+  culture:
+    'People hide their AI use. Leaders do not model it openly, so teams do not either, and the organisation never learns what is actually happening.',
+};
+
+export const DIMENSION_STRENGTH: Record<string, string> = {
+  vision:
+    'There is a shared view of what AI is for, and teams use it to guide decisions rather than improvise. That gives you a coherent basis for comparing performance across teams.',
+  criteria:
+    'Quality standards for AI-assisted work are agreed and applied consistently, so reviews rest on evidence rather than personal preference.',
+  manager:
+    'Managers can judge AI-assisted work and coach the reasoning behind it, so quality is maintained as AI use spreads.',
+  accountability:
+    'Ownership is clear and guardrails are enforced, so risk is bounded and decisions can be traced back.',
+  culture:
+    'People discuss AI use openly and leaders model it, so the organisation learns from what is actually happening.',
+};

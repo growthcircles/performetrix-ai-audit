@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/diagnostic/supabase';
 import { DIMENSION_ORDER, DIMENSIONS, bandForScore } from '@/lib/diagnostic/data';
 import { validateEmail } from '@/lib/diagnostic/email-validation';
 import { sendReportEmail, sendAdminNotification, confirmToken } from '@/lib/diagnostic/email';
+import { renderReportPdf } from '@/lib/diagnostic/pdf';
 
 function normalize(mean: number): number {
   return Math.round(((mean - 1) / 4) * 100);
@@ -116,15 +117,39 @@ export async function POST(req: NextRequest) {
     const confirmUrl = `${origin}/api/confirm?sid=${submission.id}&t=${confirmToken(submission.id)}`;
     const flagged = dimensions.filter((d) => d.score <= 80).map((d) => d.name);
 
+    const dateLabel = new Date().toLocaleDateString('en-GB', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    let attachment: { filename: string; content: string } | undefined;
+    try {
+      const pdf = await renderReportPdf({
+        name,
+        organisation,
+        dateLabel,
+        overall,
+        band: { key: band.key, name: band.name, description: band.description },
+        dimensions: dimensions.map((d) => ({ key: d.key, name: d.name, score: d.score })),
+      });
+      const safeOrg = organisation.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');
+      attachment = {
+        filename: `PerforMetrix-${safeOrg}-report.pdf`,
+        content: pdf.toString('base64'),
+      };
+    } catch (pdfError) {
+      console.error('PDF generation failed', pdfError);
+    }
+
     const reportEmail = await sendReportEmail({
       to: email,
       name,
       organisation,
       overall,
       bandName: band.name,
-      flagged,
       reportUrl,
       confirmUrl,
+      attachment,
     });
 
     const adminEmail = await sendAdminNotification({
@@ -148,3 +173,4 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+

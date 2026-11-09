@@ -1,6 +1,8 @@
 import crypto from 'crypto';
 
 const SECRET = process.env.SESSION_SECRET || 'performetrix-local-dev-secret';
+const CAL_URL = 'https://cal.com/growthcircles/multiplesessions';
+const TAGLINE = 'PerforMetrix - Measuring what really matters';
 
 export function confirmToken(submissionId: string): string {
   return crypto.createHmac('sha256', SECRET).update(`confirm:${submissionId}`).digest('hex');
@@ -17,9 +19,17 @@ export function verifyConfirmToken(submissionId: string, token: string | null): 
   }
 }
 
-type SendArgs = { from: string; to: string; subject: string; html: string };
+type Attachment = { filename: string; content: string };
 
-async function send({ from, to, subject, html }: SendArgs): Promise<{ ok: boolean; error?: string }> {
+type SendArgs = {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  attachments?: Attachment[];
+};
+
+async function send({ from, to, subject, html, attachments }: SendArgs): Promise<{ ok: boolean; error?: string }> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return { ok: false, error: 'RESEND_API_KEY is not set.' };
 
@@ -30,7 +40,7 @@ async function send({ from, to, subject, html }: SendArgs): Promise<{ ok: boolea
         Authorization: `Bearer ${key}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ from, to, subject, html }),
+      body: JSON.stringify({ from, to, subject, html, attachments }),
     });
     if (!res.ok) {
       const text = await res.text();
@@ -60,51 +70,42 @@ export async function sendReportEmail({
   organisation,
   overall,
   bandName,
-  flagged,
   reportUrl,
   confirmUrl,
+  attachment,
 }: {
   to: string;
   name: string;
   organisation: string;
   overall: number;
   bandName: string;
-  flagged: string[];
   reportUrl: string;
   confirmUrl: string;
+  attachment?: Attachment;
 }): Promise<{ ok: boolean; error?: string }> {
   const html = `
-    <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#222">
-      <h2 style="margin:0 0 8px">Your performance review diagnostic</h2>
-      <p style="margin:0 0 12px;color:#8a6d3b;font-size:12px">PerforMetrix - Measuring what really matters</p>
-      <p style="margin:0 0 16px;color:#555">${escapeHtml(organisation)}</p>
-      <p style="font-size:40px;margin:0 0 4px;color:#8a6d3b"><strong>${overall}</strong><span style="font-size:16px;color:#777"> / 100</span></p>
-      <p style="margin:0 0 20px;text-transform:uppercase;letter-spacing:1px;font-size:12px;color:#8a6d3b">${escapeHtml(bandName)}</p>
-      ${
-        flagged.length
-          ? `<p style="margin:0 0 6px"><strong>Priority gaps</strong></p><ul style="margin:0 0 20px 18px;padding:0">${flagged
-              .map((f) => `<li style="margin-bottom:4px">${escapeHtml(f)}</li>`)
-              .join('')}</ul>`
-          : `<p style="margin:0 0 20px">No dimensions were flagged as priority gaps.</p>`
-      }
-      <p style="margin:0 0 24px">
-        <a href="${reportUrl}" style="background:#b4915b;color:#14171f;padding:12px 20px;text-decoration:none;border-radius:2px;font-size:13px;letter-spacing:1px;text-transform:uppercase">View your full report</a>
-      </p>
-      <p style="margin:0 0 24px;font-size:13px;color:#555">
-        If you would like to discuss what these findings mean for ${escapeHtml(organisation)}, reply to this email or book a call.
-      </p>
-      <hr style="border:none;border-top:1px solid #eee;margin:24px 0" />
-      <p style="font-size:11px;color:#999;margin:0">
-        To confirm this email address, <a href="${confirmUrl}" style="color:#8a6d3b">click here</a>.
-      </p>
+    <div style="font-family:Arial,Helvetica,sans-serif;max-width:540px;margin:0 auto;color:#222;font-size:14px;line-height:1.6">
+      <p style="margin:0 0 4px;color:#8a6d3b;font-size:11px;letter-spacing:1px;text-transform:uppercase">${TAGLINE}</p>
+      <h2 style="margin:0 0 16px;font-weight:600">Your performance review maturity report</h2>
+      <p>Hi ${escapeHtml(name)},</p>
+      <p>Your report for <strong>${escapeHtml(organisation)}</strong> is attached. It covers your overall maturity score of ${overall}/100 (${escapeHtml(
+        bandName,
+      )}), the five dimension scores, the priority gaps and what they could mean, and what is already working.</p>
+      <p><a href="${reportUrl}" style="color:#8a6d3b">Open the report online</a></p>
+      <p>If you would like to discuss what these findings mean for ${escapeHtml(
+        organisation,
+      )}, <a href="${CAL_URL}" style="color:#8a6d3b">book a call</a>.</p>
+      <p style="margin-top:24px;font-size:11px;color:#999">To confirm this email address, <a href="${confirmUrl}" style="color:#8a6d3b">click here</a>.</p>
+      <p style="font-size:11px;color:#999">${TAGLINE}</p>
     </div>
   `;
 
   return send({
     from: fromAddress(),
     to,
-    subject: `Your performance review diagnostic: ${overall}/100 (${bandName})`,
+    subject: `Your performance review maturity report: ${overall}/100 (${bandName})`,
     html,
+    attachments: attachment ? [attachment] : undefined,
   });
 }
 
@@ -128,9 +129,9 @@ export async function sendAdminNotification({
   const to = process.env.ADMIN_NOTIFY_EMAIL || 'shiva@growth-circles.com';
 
   const html = `
-    <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#222">
+    <div style="font-family:Arial,Helvetica,sans-serif;max-width:540px;margin:0 auto;color:#222;font-size:14px">
       <h2 style="margin:0 0 4px">New diagnostic submission</h2>
-      <p style="margin:0 0 12px;color:#8a6d3b;font-size:12px">PerforMetrix - Measuring what really matters</p>
+      <p style="margin:0 0 12px;color:#8a6d3b;font-size:12px">${TAGLINE}</p>
       <table style="border-collapse:collapse;font-size:14px;margin-bottom:16px">
         <tr><td style="padding:3px 12px 3px 0;color:#777">Name</td><td>${escapeHtml(name)}</td></tr>
         <tr><td style="padding:3px 12px 3px 0;color:#777">Organisation</td><td>${escapeHtml(organisation)}</td></tr>
@@ -155,5 +156,3 @@ export async function sendAdminNotification({
     html,
   });
 }
-
-

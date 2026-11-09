@@ -178,7 +178,7 @@ export default function DiagnosticPage() {
                         className="accent-[#B4915B]"
                       />
                       <span className="opacity-80">
-                        {i === 1 ? 'Never' : i === 5 ? 'Always' : i}
+                        {['Never', 'Rarely', 'Sometimes', 'Often', 'Always'][i - 1]}
                       </span>
                     </label>
                   ))}
@@ -257,6 +257,7 @@ export default function DiagnosticPage() {
     </div>
   );
 }
+
 
 
 

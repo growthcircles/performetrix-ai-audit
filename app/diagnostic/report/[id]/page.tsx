@@ -1,4 +1,5 @@
 import { createServiceClient } from '@/lib/diagnostic/supabase';
+import { DIMENSION_IMPACT, DIMENSION_STRENGTH } from '@/lib/diagnostic/data';
 
 export default async function ReportPage({
   params,
@@ -59,6 +60,8 @@ export default async function ReportPage({
     );
   }
 
+  const flaggedDimensions = dimensions.filter((d: any) => d.score <= 80);
+  const healthyDimensions = dimensions.filter((d: any) => d.score > 80);
   const overall = scores.overall ?? 0;
   const band = scores.band || {
     key: 'ad-hoc',
@@ -101,7 +104,7 @@ export default async function ReportPage({
               each scored out of 100.
             </li>
             <li>
-              Scores at or below 80 are flagged as priority gaps — the areas where your
+              Scores at or below 80 are flagged as priority gaps: the areas where your
               organisation is most exposed.
             </li>
             <li>This is a diagnostic for where to focus, not a final verdict.</li>
@@ -172,21 +175,37 @@ export default async function ReportPage({
         </div>
 
         {/* Impact summary */}
-        <div className="bg-[#1B2029] border border-[#B65C3F] rounded p-4 mb-8">
-          <div className="text-[11px] text-[#B65C3F] uppercase tracking-wider mb-2">
-            What this could mean for {displayOrg}
-          </div>
-          {dimensions
-            .filter((d: any) => d.score <= 80)
-            .map((dim: any) => (
+        {flaggedDimensions.length > 0 && (
+          <div className="bg-[#1B2029] border border-[#B65C3F] rounded p-4 mb-8">
+            <div className="text-[11px] text-[#B65C3F] uppercase tracking-wider mb-2">
+              What this could mean for {displayOrg}
+            </div>
+            {flaggedDimensions.map((dim: any) => (
               <div key={dim.key} className="mb-3 last:mb-0">
                 <div className="text-sm font-display mb-1">{dim.name}</div>
                 <div className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed">
-                  {dim.band.description}
+                  {DIMENSION_IMPACT[dim.key] || dim.band.description}
                 </div>
               </div>
             ))}
-        </div>
+          </div>
+        )}
+
+        {healthyDimensions.length > 0 && (
+          <div className="bg-[#1B2029] border border-[#7C9082] rounded p-4 mb-8">
+            <div className="text-[11px] text-[#7C9082] uppercase tracking-wider mb-2">
+              What is working
+            </div>
+            {healthyDimensions.map((dim: any) => (
+              <div key={dim.key} className="mb-3 last:mb-0">
+                <div className="text-sm font-display mb-1">{dim.name}</div>
+                <div className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed">
+                  {DIMENSION_STRENGTH[dim.key] || ''}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         {/* CTA */}
         <div className="bg-[#1B2029] border border-[#B4915B] rounded p-4 mb-8">
@@ -194,10 +213,15 @@ export default async function ReportPage({
             Your results show gaps that warrant a closer conversation.
           </div>
           <p className="text-sm text-[#E8E4DA] opacity-90 leading-relaxed mb-4">
-            Five dimensions were assessed. Some sit below the priority threshold, which means
-            your organisation is exposed in areas that compound over time. We help organisations
-            close these gaps. If you would like to discuss what these findings mean for your
-            organisation, book a call.
+            {dimensions.length} dimensions were assessed.{' '}
+            {flaggedDimensions.length === 0
+              ? 'None sit below the priority threshold.'
+              : flaggedDimensions.length +
+                ' sit below the priority threshold: ' +
+                flaggedDimensions.map((d: any) => d.name).join(', ') +
+                '.'}{' '}
+            Those gaps compound over time. We help organisations close them. If you would like to
+            discuss what these findings mean for your organisation, book a call.
           </p>
           <a
             href="https://cal.com/growthcircles/multiplesessions"
@@ -219,6 +243,10 @@ export default async function ReportPage({
     </div>
   );
 }
+
+
+
+
 
 
 
