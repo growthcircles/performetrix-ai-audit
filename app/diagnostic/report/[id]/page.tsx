@@ -22,7 +22,7 @@ export default async function ReportPage({
       )
     `,
     )
-    .eq('leaders.id', id)
+    .eq('leader_id', id)
     .maybeSingle();
 
   if (error || !submission) {

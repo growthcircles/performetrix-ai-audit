@@ -1,55 +1,65 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/diagnostic/supabase';
+import { isAdminToken, COOKIE_NAME } from '@/lib/diagnostic/auth';
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const userId = url.searchParams.get('userId');
-
-    if (!userId) {
-      return new Response(JSON.stringify({ error: 'User ID required' }), { status: 400 });
-    }
-
     const supabase = createServiceClient();
 
-    // Get user profile
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('id, name, email, role, customer_id')
-      .eq('id', userId)
-      .single();
+    // Admin view: list every diagnostic submission
+    if (isAdminToken(req.cookies.get(COOKIE_NAME)?.value)) {
+      const { data, error } = await supabase
+        .from('submissions')
+        .select(
+          `
+          id,
+          computed_scores,
+          submitted_at,
+          leaders (
+            id,
+            name,
+            token,
+            customers ( name )
+          )
+        `,
+        )
+        .order('submitted_at', { ascending: false });
 
-    if (userError || !user) {
-      return new Response(JSON.stringify({ error: 'User not found' }), { status: 404 });
+      if (error) throw new Error(error.message);
+
+      const reports = (data || []).map((row: any) => ({
+        submissionId: row.leaders?.id,
+        name: row.leaders?.name || 'Unknown',
+        organisation: row.leaders?.customers?.name || 'Unknown',
+        submittedAt: row.submitted_at,
+        overall: row.computed_scores?.overall ?? null,
+        band: row.computed_scores?.band?.name ?? null,
+        flagged: (row.computed_scores?.dimensions || []).filter((d: any) => d.score <= 80).length,
+      }));
+
+      return NextResponse.json({ ok: true, isAdmin: true, reports });
     }
 
-    // Get submission
-    const { data: submission, error: subError } = await supabase
+    // CHRO view: own report only
+    const userId = req.nextUrl.searchParams.get('userId');
+    if (!userId) {
+      return NextResponse.json({ error: 'Not authorised' }, { status: 401 });
+    }
+
+    const { data: submission, error } = await supabase
       .from('submissions')
-      .select(`
-        id,
-        raw_answers,
-        computed_scores,
-        submitted_at,
-        leaders!inner ( id, name, customer_id )
-      `)
-      .eq('leader_id', user.id)
+      .select('id, computed_scores, submitted_at, leaders ( id, name, customers ( name ) )')
+      .eq('leaders.id', userId)
       .maybeSingle();
 
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          customer_id: user.customer_id,
-        },
-        submission: submission || null,
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
-    );
+    if (error) throw new Error(error.message);
+
+    return NextResponse.json({
+      ok: true,
+      isAdmin: false,
+      submission: submission || null,
+    });
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

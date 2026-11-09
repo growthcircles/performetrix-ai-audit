@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/diagnostic/supabase';
 import { DIMENSION_ORDER, DIMENSIONS, bandForScore } from '@/lib/diagnostic/data';
 
@@ -31,6 +32,7 @@ export async function POST(req: Request) {
     const { data: authData, error: authError } = await supabase.auth.admin.createUser({
       email,
       password,
+      email_confirm: true,
       user_metadata: {
         role: 'chro',
         customer_id: customer.id,
@@ -97,17 +99,21 @@ export async function POST(req: Request) {
 
     if (submissionError) throw new Error(submissionError.message);
 
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        userId: authData.user.id,
-        submissionId: leader.id,
-        overall,
-        band: overallBand,
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
-    );
+    const res = NextResponse.json({
+      ok: true,
+      userId: authData.user.id,
+      submissionId: leader.id,
+      overall,
+      band: overallBand,
+    });
+    res.cookies.set('pfmx_user', authData.user.id, {
+      httpOnly: false,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+    });
+    return res;
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

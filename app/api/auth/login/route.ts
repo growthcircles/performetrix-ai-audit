@@ -1,39 +1,55 @@
+import { NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/diagnostic/supabase';
+import { adminToken, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/diagnostic/auth';
 
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
 
     if (!email || !password) {
-      return new Response(
-        JSON.stringify({ error: 'Email and password are required.' }),
+      return NextResponse.json(
+        { error: 'Email and password are required.' },
         { status: 400 },
       );
     }
 
-    const supabase = createServiceClient();
+    const cleanEmail = String(email).trim().toLowerCase();
 
-    // Sign in with Supabase Auth
+    // 1. Admin login (environment credentials)
+    const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD || '';
+    if (adminEmail && adminPassword && cleanEmail === adminEmail && password === adminPassword) {
+      const res = NextResponse.json({ ok: true, isAdmin: true, redirect: '/admin' });
+      res.cookies.set(COOKIE_NAME, adminToken(), COOKIE_OPTIONS);
+      return res;
+    }
+
+    // 2. CHRO login (Supabase Auth)
+    const supabase = createServiceClient();
     const { data, error } = await supabase.auth.signInWithPassword({
-      email,
+      email: cleanEmail,
       password,
     });
 
     if (error || !data.user) {
-      return new Response(JSON.stringify({ error: 'Invalid email or password.' }), {
-        status: 401,
-      });
+      return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
     }
 
-    return new Response(
-      JSON.stringify({
-        ok: true,
-        userId: data.user.id,
-        email: data.user.email,
-      }),
-      { status: 200, headers: { 'Content-Type': 'application/json' } },
-    );
+    const res = NextResponse.json({
+      ok: true,
+      isAdmin: false,
+      userId: data.user.id,
+      email: data.user.email,
+      redirect: '/diagnostic',
+    });
+    res.cookies.set('pfmx_user', data.user.id, {
+      httpOnly: false,
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+    });
+    return res;
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
