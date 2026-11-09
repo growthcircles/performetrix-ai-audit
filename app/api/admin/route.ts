@@ -1,64 +1,54 @@
+export const runtime = 'nodejs';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceClient } from '@/lib/diagnostic/supabase';
 import { isAdminToken, COOKIE_NAME } from '@/lib/diagnostic/auth';
 
 export async function GET(req: NextRequest) {
   try {
+    if (!isAdminToken(req.cookies.get(COOKIE_NAME)?.value)) {
+      return NextResponse.json({ error: 'Admin sign in required.' }, { status: 401 });
+    }
+
     const supabase = createServiceClient();
-
-    // Admin view: list every diagnostic submission
-    if (isAdminToken(req.cookies.get(COOKIE_NAME)?.value)) {
-      const { data, error } = await supabase
-        .from('submissions')
-        .select(
-          `
-          id,
-          computed_scores,
-          submitted_at,
-          leaders (
-            id,
-            name,
-            token,
-            customers ( name )
-          )
-        `,
-        )
-        .order('submitted_at', { ascending: false });
-
-      if (error) throw new Error(error.message);
-
-      const reports = (data || []).map((row: any) => ({
-        submissionId: row.leaders?.id,
-        name: row.leaders?.name || 'Unknown',
-        organisation: row.leaders?.customers?.name || 'Unknown',
-        submittedAt: row.submitted_at,
-        overall: row.computed_scores?.overall ?? null,
-        band: row.computed_scores?.band?.name ?? null,
-        flagged: (row.computed_scores?.dimensions || []).filter((d: any) => d.score <= 80).length,
-      }));
-
-      return NextResponse.json({ ok: true, isAdmin: true, reports });
-    }
-
-    // CHRO view: own report only
-    const userId = req.nextUrl.searchParams.get('userId');
-    if (!userId) {
-      return NextResponse.json({ error: 'Not authorised' }, { status: 401 });
-    }
-
-    const { data: submission, error } = await supabase
+    const { data, error } = await supabase
       .from('submissions')
-      .select('id, computed_scores, submitted_at, leaders ( id, name, customers ( name ) )')
-      .eq('leaders.id', userId)
-      .maybeSingle();
+      .select(
+        `
+        id,
+        raw_answers,
+        computed_scores,
+        submitted_at,
+        leaders (
+          id,
+          name,
+          customers ( name )
+        )
+      `,
+      )
+      .order('submitted_at', { ascending: false });
 
     if (error) throw new Error(error.message);
 
-    return NextResponse.json({
-      ok: true,
-      isAdmin: false,
-      submission: submission || null,
+    const reports = (data || [])
+      .filter((row: any) => Array.isArray(row.computed_scores?.dimensions))
+      .map((row: any) => {
+      const respondent = row.raw_answers?.__respondent || {};
+      const dims = row.computed_scores?.dimensions || [];
+      return {
+        submissionId: row.leaders?.id,
+        name: respondent.name || row.leaders?.name || 'Unknown',
+        organisation: respondent.organisation || row.leaders?.customers?.name || 'Unknown',
+        email: respondent.email || '',
+        emailConfirmed: Boolean(respondent.emailConfirmed),
+        submittedAt: row.submitted_at,
+        overall: row.computed_scores?.overall ?? null,
+        band: row.computed_scores?.band?.name ?? null,
+        flagged: dims.filter((d: any) => d.score <= 80).map((d: any) => d.name),
+      };
     });
+
+    return NextResponse.json({ ok: true, reports });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

@@ -8,7 +8,3 @@ export function createServiceClient() {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }
-
-export function createBrowserClient() {
-  return createSupabaseClient(supabaseUrl, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!);
-}

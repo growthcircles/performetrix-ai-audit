@@ -19,16 +19,13 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
-
       if (!res.ok || !data.ok) {
         setError(data.error || 'Login failed.');
         setSubmitting(false);
         return;
       }
-
-      window.location.href = data.redirect || '/diagnostic';
+      window.location.href = data.redirect || '/admin';
     } catch (err: any) {
       setError(err.message);
       setSubmitting(false);
@@ -39,7 +36,8 @@ export default function LoginPage() {
     <div className="min-h-screen bg-[#14171F] text-[#E8E4DA] flex flex-col items-center justify-center p-6">
       <div className="bg-[#1B2029] border border-[#333B4C] rounded p-8 max-w-md w-full">
         <img src="/logo.png" alt="PerforMetrix" className="h-7 mb-6" />
-        <h1 className="text-3xl font-display font-medium mb-6">Sign in</h1>
+        <h1 className="text-3xl font-display font-medium mb-1">Admin sign in</h1>
+        <p className="text-xs opacity-50 mb-6">For reviewing diagnostic submissions.</p>
 
         {error && <p className="text-[#B65C3F] text-sm mb-4">{error}</p>}
 
@@ -55,7 +53,6 @@ export default function LoginPage() {
               required
               autoComplete="email"
               className="w-full bg-[#242A38] border border-[#333B4C] rounded px-3 py-2 outline-none focus:border-[#B4915B]"
-              placeholder="you@company.com"
             />
           </div>
           <div className="mb-6">
@@ -80,10 +77,10 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-sm opacity-75 mt-4 text-center">
-          Don't have an account?{' '}
-          <a href="/signup" className="text-[#D8BE8F] hover:underline">
-            Create one
+        <p className="text-xs opacity-50 mt-6 text-center">
+          Taking the diagnostic?{' '}
+          <a href="/diagnostic" className="text-[#D8BE8F] hover:underline">
+            Start here
           </a>
         </p>
       </div>

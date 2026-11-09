@@ -6,10 +6,12 @@ type Report = {
   submissionId: string;
   name: string;
   organisation: string;
+  email: string;
+  emailConfirmed: boolean;
   submittedAt: string;
   overall: number | null;
   band: string | null;
-  flagged: number;
+  flagged: string[];
 };
 
 export default function AdminPage() {
@@ -51,22 +53,26 @@ export default function AdminPage() {
     );
   }
 
+  const confirmed = reports.filter((r) => r.emailConfirmed).length;
+
   return (
     <div className="min-h-screen bg-[#14171F] text-[#E8E4DA]">
       <nav className="flex items-center justify-between px-6 py-4 border-b border-[#333B4C] bg-[#1B2029]">
         <img src="/logo.png" alt="PerforMetrix" className="h-8" />
-        <form action="/api/auth/logout" method="post">
-          <button type="submit" className="text-xs text-[#D8BE8F] uppercase tracking-wider">
-            Sign out
-          </button>
-        </form>
+        <a
+          href="/api/auth/logout"
+          className="text-xs text-[#D8BE8F] uppercase tracking-wider"
+        >
+          Sign out
+        </a>
       </nav>
 
       <main className="max-w-4xl mx-auto px-6 py-8">
         <div className="text-xs text-[#9AA3B5] uppercase tracking-wider mb-2">Admin</div>
         <h1 className="text-[34px] font-display font-medium mb-1">Diagnostic submissions</h1>
         <p className="text-sm opacity-60 mb-6">
-          {reports.length} {reports.length === 1 ? 'submission' : 'submissions'}
+          {reports.length} {reports.length === 1 ? 'submission' : 'submissions'} · {confirmed}{' '}
+          confirmed {confirmed === 1 ? 'email' : 'emails'}
         </p>
 
         {reports.length === 0 ? (
@@ -76,39 +82,62 @@ export default function AdminPage() {
         ) : (
           <div className="bg-[#1B2029] border border-[#333B4C] rounded divide-y divide-[#333B4C]">
             {reports.map((r) => (
-              <div key={r.submissionId} className="flex items-center justify-between gap-4 p-5">
-                <div>
-                  <div className="font-display text-lg">{r.name}</div>
-                  <div className="text-xs opacity-60">{r.organisation}</div>
-                  <div className="text-xs opacity-40 mt-1">
-                    {new Date(r.submittedAt).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric',
-                    })}
+              <div key={r.submissionId} className="p-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <div className="font-display text-lg">
+                      {r.name}
+                      {r.emailConfirmed && (
+                        <span className="ml-2 align-middle text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-[#7C9082] text-[#7C9082]">
+                          Confirmed
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-xs opacity-60">{r.organisation}</div>
+                    <a href={`mailto:${r.email}`} className="text-xs text-[#D8BE8F] hover:underline">
+                      {r.email}
+                    </a>
+                    <div className="text-xs opacity-40 mt-1">
+                      {new Date(r.submittedAt).toLocaleString('en-GB', {
+                        day: 'numeric',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 shrink-0">
+                    {r.overall !== null && (
+                      <div className="text-right">
+                        <div className="font-display text-2xl text-[#D8BE8F]">{r.overall}</div>
+                        <div className="text-[10px] uppercase tracking-wider opacity-60">
+                          {r.band}
+                        </div>
+                      </div>
+                    )}
+                    <a
+                      href={`/diagnostic/report/${r.submissionId}`}
+                      className="text-xs uppercase tracking-wider px-3 py-1.5 rounded border border-[#B4915B] text-[#D8BE8F] hover:bg-[#B4915B] hover:text-[#14171F]"
+                    >
+                      View report
+                    </a>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  {r.overall !== null && (
-                    <div className="text-right">
-                      <div className="font-display text-2xl text-[#D8BE8F]">{r.overall}</div>
-                      <div className="text-[10px] uppercase tracking-wider opacity-60">
-                        {r.band}
-                      </div>
-                    </div>
-                  )}
-                  {r.flagged > 0 && (
-                    <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded border border-[#B65C3F] text-[#B65C3F]">
-                      {r.flagged} gap{r.flagged === 1 ? '' : 's'}
-                    </span>
-                  )}
-                  <a
-                    href={`/diagnostic/report/${r.submissionId}`}
-                    className="text-xs uppercase tracking-wider px-3 py-1.5 rounded border border-[#B4915B] text-[#D8BE8F] hover:bg-[#B4915B] hover:text-[#14171F]"
-                  >
-                    View report
-                  </a>
-                </div>
+
+                {r.flagged.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {r.flagged.map((f) => (
+                      <span
+                        key={f}
+                        className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border border-[#B65C3F] text-[#B65C3F]"
+                      >
+                        {f}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>

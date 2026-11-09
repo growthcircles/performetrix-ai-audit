@@ -37,9 +37,41 @@ export default async function ReportPage({
   }
 
   const scores = submission.computed_scores as any;
-  const dimensions = scores.dimensions || [];
-  const overall = scores.overall || 0;
-  const band = scores.band || { key: 'ad-hoc', name: 'Ad hoc', rangeLabel: '0-39', description: '' };
+  const dimensions: any[] = Array.isArray(scores?.dimensions) ? scores.dimensions : [];
+
+  // Only PerforMetrix submissions carry a dimensions array. Anything else
+  // (for example an old FutureReady record sharing the same database) must not
+  // be rendered with this instrument's layout.
+  if (dimensions.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#14171F] text-[#E8E4DA] font-body flex flex-col items-center justify-center p-6">
+        <div className="bg-[#1B2029] border border-[#333B4C] rounded p-8 max-w-md">
+          <div className="text-xl font-display mb-2">Not a PerforMetrix report</div>
+          <p className="text-sm opacity-70">
+            This record was created by a different assessment. PerforMetrix reports are
+            generated from the 15-question AI maturity diagnostic.
+          </p>
+          <a href="/diagnostic" className="inline-block mt-4 text-[#D8BE8F] hover:underline">
+            Take the diagnostic
+          </a>
+        </div>
+      </div>
+    );
+  }
+
+  const overall = scores.overall ?? 0;
+  const band = scores.band || {
+    key: 'ad-hoc',
+    name: 'Ad hoc',
+    rangeLabel: '0-39',
+    description: 'No clear position yet.',
+  };
+
+  const raw = (submission.raw_answers || {}) as any;
+  const respondent = raw.__respondent || {};
+  const displayName = respondent.name || submission.leaders.name;
+  const displayOrg =
+    respondent.organisation || submission.leaders.customers?.name || 'Unknown';
 
   return (
     <div className="min-h-screen bg-[#14171F] text-[#E8E4DA] font-body">
@@ -53,9 +85,9 @@ export default async function ReportPage({
         <div className="text-xs text-[#9AA3B5] uppercase tracking-wider mb-2">
           AI Maturity Diagnostic Report
         </div>
-        <h1 className="text-[34px] font-display font-medium leading-1.15">{submission.leaders.name}</h1>
+        <h1 className="text-[34px] font-display font-medium leading-1.15">{displayName}</h1>
         <p className="text-[#E8E4DA] opacity-55 text-xs mt-1 mb-6">
-          Organisation: {submission.leaders.customers?.name || 'Unknown'}
+          Organisation: {displayOrg}
         </p>
 
         {/* Legend */}
@@ -142,7 +174,7 @@ export default async function ReportPage({
         {/* Impact summary */}
         <div className="bg-[#1B2029] border border-[#B65C3F] rounded p-4 mb-8">
           <div className="text-[11px] text-[#B65C3F] uppercase tracking-wider mb-2">
-            What this could mean for {submission.leaders.customers?.name || 'your organisation'}
+            What this could mean for {displayOrg}
           </div>
           {dimensions
             .filter((d: any) => d.score <= 80)
@@ -187,3 +219,4 @@ export default async function ReportPage({
     </div>
   );
 }
+
