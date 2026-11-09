@@ -75,7 +75,8 @@ export async function sendReportEmail({
 }): Promise<{ ok: boolean; error?: string }> {
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#222">
-      <h2 style="margin:0 0 8px">Your AI maturity report</h2>
+      <h2 style="margin:0 0 8px">Your performance review diagnostic</h2>
+      <p style="margin:0 0 12px;color:#8a6d3b;font-size:12px">PerforMetrix - Measuring what really matters</p>
       <p style="margin:0 0 16px;color:#555">${escapeHtml(organisation)}</p>
       <p style="font-size:40px;margin:0 0 4px;color:#8a6d3b"><strong>${overall}</strong><span style="font-size:16px;color:#777"> / 100</span></p>
       <p style="margin:0 0 20px;text-transform:uppercase;letter-spacing:1px;font-size:12px;color:#8a6d3b">${escapeHtml(bandName)}</p>
@@ -102,7 +103,7 @@ export async function sendReportEmail({
   return send({
     from: fromAddress(),
     to,
-    subject: `Your AI maturity report: ${overall}/100 (${bandName})`,
+    subject: `Your performance review diagnostic: ${overall}/100 (${bandName})`,
     html,
   });
 }
@@ -128,7 +129,8 @@ export async function sendAdminNotification({
 
   const html = `
     <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#222">
-      <h2 style="margin:0 0 12px">New PerforMetrix diagnostic</h2>
+      <h2 style="margin:0 0 4px">New diagnostic submission</h2>
+      <p style="margin:0 0 12px;color:#8a6d3b;font-size:12px">PerforMetrix - Measuring what really matters</p>
       <table style="border-collapse:collapse;font-size:14px;margin-bottom:16px">
         <tr><td style="padding:3px 12px 3px 0;color:#777">Name</td><td>${escapeHtml(name)}</td></tr>
         <tr><td style="padding:3px 12px 3px 0;color:#777">Organisation</td><td>${escapeHtml(organisation)}</td></tr>
@@ -153,3 +155,5 @@ export async function sendAdminNotification({
     html,
   });
 }
+
+

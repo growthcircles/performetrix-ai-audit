@@ -49,7 +49,7 @@ export default async function ReportPage({
           <div className="text-xl font-display mb-2">Not a PerforMetrix report</div>
           <p className="text-sm opacity-70">
             This record was created by a different assessment. PerforMetrix reports are
-            generated from the 15-question AI maturity diagnostic.
+            generated from the 15-question performance review diagnostic.
           </p>
           <a href="/diagnostic" className="inline-block mt-4 text-[#D8BE8F] hover:underline">
             Take the diagnostic
@@ -83,7 +83,7 @@ export default async function ReportPage({
 
       <main className="max-w-2xl mx-auto px-6 py-8">
         <div className="text-xs text-[#9AA3B5] uppercase tracking-wider mb-2">
-          AI Maturity Diagnostic Report
+          Performance review maturity in the AI era
         </div>
         <h1 className="text-[34px] font-display font-medium leading-1.15">{displayName}</h1>
         <p className="text-[#E8E4DA] opacity-55 text-xs mt-1 mb-6">
@@ -97,7 +97,7 @@ export default async function ReportPage({
           </div>
           <ul className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed list-disc pl-5 mb-3">
             <li>
-              Your overall AI maturity score is the average of the five dimension scores below,
+              Your overall maturity score is the average of the five dimension scores below,
               each scored out of 100.
             </li>
             <li>
@@ -123,7 +123,7 @@ export default async function ReportPage({
           <span className="text-[76px] font-display font-medium text-[#D8BE8F]">{overall}</span>
           <div>
             <div className="text-xs text-[#9AA3B5] uppercase tracking-wider">
-              Overall AI maturity score
+              Overall maturity score
             </div>
             <span className={`text-xs uppercase tracking-wider ${band.key === 'leading' || band.key === 'embedded' ? 'text-[#7C9082]' : band.key === 'building' ? 'text-[#B4915B]' : 'text-[#B65C3F]'}`}>
               {band.name}
@@ -219,4 +219,5 @@ export default async function ReportPage({
     </div>
   );
 }
+
 
