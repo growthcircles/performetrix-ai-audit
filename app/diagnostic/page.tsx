@@ -71,7 +71,7 @@ export default function DiagnosticPage() {
   return (
     <div className="min-h-screen bg-[#14171F] text-[#E8E4DA]">
       <nav className="flex items-center justify-between px-6 py-4 border-b border-[#333B4C] bg-[#1B2029]">
-        <img src="/logo.png" alt="PerforMetrix" className="h-8" />
+        <img src="/logo-white.png" alt="PerforMetrix" className="h-7" />
         <a href="/login" className="text-xs text-[#9AA3B5] uppercase tracking-wider hover:text-[#D8BE8F]">
           Admin
         </a>
@@ -257,5 +257,8 @@ export default function DiagnosticPage() {
     </div>
   );
 }
+
+
+
 
 

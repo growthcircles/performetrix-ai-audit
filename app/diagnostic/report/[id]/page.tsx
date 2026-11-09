@@ -77,7 +77,7 @@ export default async function ReportPage({
     <div className="min-h-screen bg-[#14171F] text-[#E8E4DA] font-body">
       <nav className="flex items-center justify-between px-6 py-4 border-b border-[#333B4C] bg-[#1B2029]">
         <div className="flex items-center gap-3">
-          <img src="/logo.png" alt="PerforMetrix" className="h-8" />
+          <img src="/logo-white.png" alt="PerforMetrix" className="h-7" />
         </div>
       </nav>
 
@@ -219,5 +219,8 @@ export default async function ReportPage({
     </div>
   );
 }
+
+
+
 
 

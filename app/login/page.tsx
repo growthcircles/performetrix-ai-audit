@@ -35,7 +35,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-[#14171F] text-[#E8E4DA] flex flex-col items-center justify-center p-6">
       <div className="bg-[#1B2029] border border-[#333B4C] rounded p-8 max-w-md w-full">
-        <img src="/logo.png" alt="PerforMetrix" className="h-7 mb-6" />
+        <div className="mb-6"><img src="/logo-white.png" alt="PerforMetrix" className="h-7 mb-2" /><div className="text-[10px] uppercase tracking-wider text-[#9AA3B5]">Measuring what really matters</div></div>
         <h1 className="text-3xl font-display font-medium mb-1">Admin sign in</h1>
         <p className="text-xs opacity-50 mb-6">For reviewing diagnostic submissions.</p>
 
@@ -87,3 +87,6 @@ export default function LoginPage() {
     </div>
   );
 }
+
+
+
