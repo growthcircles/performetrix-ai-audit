@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/diagnostic/supabase';
 import { DIMENSION_IMPACT, DIMENSION_STRENGTH } from '@/lib/diagnostic/data';
+import { buildCta } from '@/lib/diagnostic/cta';
 
 export default async function ReportPage({
   params,
@@ -75,6 +76,12 @@ export default async function ReportPage({
   const displayName = respondent.name || submission.leaders.name;
   const displayOrg =
     respondent.organisation || submission.leaders.customers?.name || 'Unknown';
+
+  const call = buildCta({
+    organisation: displayOrg,
+    flagged: flaggedDimensions,
+    healthy: healthyDimensions,
+  });
 
   return (
     <div className="min-h-screen bg-[#14171F] text-[#E8E4DA] font-body">
@@ -209,20 +216,8 @@ export default async function ReportPage({
 
         {/* CTA */}
         <div className="bg-[#1B2029] border border-[#B4915B] rounded p-4 mb-8">
-          <div className="text-lg font-display mb-2">
-            Your results show gaps that warrant a closer conversation.
-          </div>
-          <p className="text-sm text-[#E8E4DA] opacity-90 leading-relaxed mb-4">
-            {dimensions.length} dimensions were assessed.{' '}
-            {flaggedDimensions.length === 0
-              ? 'None sit below the priority threshold.'
-              : flaggedDimensions.length +
-                ' sit below the priority threshold: ' +
-                flaggedDimensions.map((d: any) => d.name).join(', ') +
-                '.'}{' '}
-            Those gaps compound over time. We help organisations close them. If you would like to
-            discuss what these findings mean for your organisation, book a call.
-          </p>
+          <div className="text-lg font-display mb-2">{call.title}</div>
+          <p className="text-sm text-[#E8E4DA] opacity-90 leading-relaxed mb-4">{call.body}</p>
           <a
             href="https://cal.com/growthcircles/multiplesessions"
             target="_blank"

@@ -6,11 +6,13 @@ import {
   View,
   StyleSheet,
   Image,
+  Link,
   renderToBuffer,
 } from '@react-pdf/renderer';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DIMENSION_IMPACT, DIMENSION_STRENGTH } from './data';
+import { buildCta } from './cta';
 
 const C = {
   page: '#FFFFFF',
@@ -84,9 +86,8 @@ const s = StyleSheet.create({
   tdStatus: { width: '14%', fontSize: 6.6, letterSpacing: 0.4, textAlign: 'right' },
   tableRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, borderBottomWidth: 0.5, borderBottomColor: C.barBg },
   dimName: { fontSize: 8.4, fontFamily: 'Helvetica-Bold', color: C.text, marginTop: 3 },
-  ctaBox: { backgroundColor: C.brassMid, paddingVertical: 7, paddingHorizontal: 14, alignItems: 'center', alignSelf: 'flex-start', marginTop: 6 },
+  ctaLink: { backgroundColor: C.brassMid, paddingVertical: 7, paddingHorizontal: 14, alignSelf: 'flex-start', marginTop: 6 },
   ctaText: { fontSize: 8, color: '#FFFFFF', fontFamily: 'Helvetica-Bold', letterSpacing: 0.8 },
-  linkText: { fontSize: 7.6, color: C.dim, marginTop: 5 },
   callTitle: { fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: C.brass, marginBottom: 3 },
   footer: {
     position: 'absolute',
@@ -114,9 +115,9 @@ export type ReportPdfInput = {
 
 function logoDataUri(): string | null {
   try {
-    const p = path.join(process.cwd(), 'public', 'logo.png');
+    const p = path.join(process.cwd(), 'public', 'logo.jpg');
     const b = fs.readFileSync(p);
-    return `data:image/png;base64,${b.toString('base64')}`;
+    return `data:image/jpeg;base64,${b.toString('base64')}`;
   } catch {
     return null;
   }
@@ -154,25 +155,11 @@ function nextGain(input: ReportPdfInput): string {
 }
 
 function cta(input: ReportPdfInput): { title: string; body: string } {
-  const flagged = input.dimensions.filter((d) => d.score <= 80);
-  const healthy = input.dimensions.filter((d) => d.score > 80);
-
-  if (flagged.length === 0) {
-    return {
-      title: 'Your results are strong. The question is whether they hold up.',
-      body: `All five dimensions sit above the priority threshold. That is a good position to be in. It is also one view, from the top. Whether managers and employees experience the same thing is a separate question, and it is usually where the difference between the reported picture and the lived one shows up. A short conversation can test that, and set out what it would take to keep this position as AI use changes.`,
-    };
-  }
-  if (healthy.length > 0) {
-    return {
-      title: 'Your results show where to focus.',
-      body: `${listNames(healthy)} ${healthy.length === 1 ? 'is' : 'are'} holding up. ${listNames(flagged)} ${flagged.length === 1 ? 'sits' : 'sit'} below the priority threshold. Closing that gap is where the next gain is, and the strong areas give you a base to build from. If you would like to discuss what these findings mean for ${input.organisation}, book a call.`,
-    };
-  }
-  return {
-    title: 'Your results show gaps that warrant a closer conversation.',
-    body: `All five dimensions sit below the priority threshold. That means ${input.organisation} is exposed across the board, and the implications compound: inconsistent quality, unresolved disputes, unmanaged risk, and blind spots that grow over time. We help organisations close these gaps. If you would like to discuss what these findings mean for ${input.organisation}, book a call.`,
-  };
+  return buildCta({
+    organisation: input.organisation,
+    flagged: input.dimensions.filter((d) => d.score <= 80),
+    healthy: input.dimensions.filter((d) => d.score > 80),
+  });
 }
 
 function ReportDoc({ input }: { input: ReportPdfInput }) {
@@ -333,10 +320,9 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
           <Text style={s.sectionTitle}>NEXT STEP</Text>
           <Text style={s.callTitle}>{call.title}</Text>
           <Text style={s.para}>{call.body}</Text>
-          <View style={s.ctaBox}>
+          <Link src="https://cal.com/growthcircles/multiplesessions" style={s.ctaLink}>
             <Text style={s.ctaText}>BOOK A MEETING</Text>
-          </View>
-          <Text style={s.linkText}>cal.com/growthcircles/multiplesessions</Text>
+          </Link>
 
           <View style={s.divider} />
 
@@ -367,5 +353,14 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
 }
 
 export async function renderReportPdf(input: ReportPdfInput): Promise<Buffer> {
-  return renderToBuffer(<ReportDoc input={input} />);
+  const raw = await renderToBuffer(<ReportDoc input={input} />);
+  const buf = Buffer.from(raw);
+  // pdfkit defaults the header to PDF 1.3 while the output uses transparency,
+  // which is a 1.4 feature. Acrobat rejects that mismatch, so stamp 1.7.
+  if (buf.subarray(0, 8).toString('latin1').startsWith('%PDF-1.')) {
+    buf.write('%PDF-1.7', 0, 'latin1');
+  }
+  return buf;
 }
+
+
