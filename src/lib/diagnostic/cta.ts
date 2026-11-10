@@ -1,40 +1,47 @@
-export type CtaDimension = { name: string };
+import { bandForScore } from './data';
 
-function listNames(items: CtaDimension[]): string {
-  if (items.length === 0) return '';
-  if (items.length === 1) return items[0].name;
-  if (items.length === 2) return `${items[0].name} and ${items[1].name}`;
-  return items.slice(0, -1).map((i) => i.name).join(', ') + ' and ' + items[items.length - 1].name;
+export type CtaDimension = { name: string; score: number };
+
+function entry(d: CtaDimension): string {
+  return `${d.name} (${d.score}, ${bandForScore(d.score).name})`;
+}
+
+function list(items: CtaDimension[]): string {
+  return items.map(entry).join('; ');
 }
 
 export function buildCta({
   organisation,
-  flagged,
-  healthy,
+  dimensions,
 }: {
   organisation: string;
-  flagged: CtaDimension[];
-  healthy: CtaDimension[];
+  dimensions: CtaDimension[];
 }): { title: string; body: string } {
-  if (flagged.length === 0) {
+  const below = [...dimensions].filter((d) => d.score < 75).sort((a, b) => a.score - b.score);
+  const above = [...dimensions].filter((d) => d.score >= 75).sort((a, b) => b.score - a.score);
+
+  if (below.length === 0) {
     return {
-      title: 'Your results are strong. The question is whether they hold up.',
-      body: `All five dimensions sit above the priority threshold. That is a good position to be in. It is also one view, from the top. Whether managers and employees experience the same thing is a separate question, and it is usually where the difference between the reported picture and the lived one shows up. A short conversation can test that, and set out what it would take to keep this position as AI use changes.`,
+      title: 'Every dimension sits in the Embedded or Leading band.',
+      body: `That is a strong position, and it is one view from the top. Whether managers and employees see the same thing is a separate question, and it is usually where the difference between the reported picture and the lived one shows up. A short conversation can test that, and set out what it would take to keep this position as AI use changes. If you would like to discuss what these findings mean for ${organisation}, book a call.`,
     };
   }
 
-  if (healthy.length > 0) {
-    return {
-      title: 'Your results show where to focus.',
-      body: `${listNames(healthy)} ${healthy.length === 1 ? 'is' : 'are'} holding up. ${listNames(
-        flagged,
-      )} ${flagged.length === 1 ? 'has' : 'have'} the most room to improve, and the strong areas give you a base to build from. If you would like to discuss what these findings mean for ${organisation}, book a call.`,
-    };
-  }
+  const counts = ['', 'One', 'Two', 'Three', 'Four', 'Five'];
+  const title =
+    below.length === dimensions.length
+      ? 'All five dimensions sit below the Building band.'
+      : `${counts[below.length]} of five dimensions sit below the Building band.`;
+
+  const strong =
+    above.length === 1
+      ? `${entry(above[0])} is at or above it.`
+      : above.length > 1
+      ? `${list(above)} are at or above it.`
+      : 'No dimension is at or above it.';
 
   return {
-    title: 'Your results show gaps that warrant a closer conversation.',
-    body: `All five dimensions sit below the priority threshold. That means ${organisation} is exposed across the board, and the implications compound: inconsistent quality, unresolved disputes, unmanaged risk, and blind spots that grow over time. We help organisations close these gaps. If you would like to discuss what these findings mean for ${organisation}, book a call.`,
+    title,
+    body: `They are: ${list(below)}. ${strong} If you would like to discuss what these findings mean for ${organisation}, book a call.`,
   };
 }
-

@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
     const origin = req.nextUrl.origin;
     const reportUrl = `${origin}/diagnostic/report/${leader.id}`;
     const confirmUrl = `${origin}/api/confirm?sid=${submission.id}&t=${confirmToken(submission.id)}`;
-    const flagged = dimensions.filter((d) => d.score <= 80).map((d) => d.name);
+    const flagged = dimensions.filter((d) => d.score < 75).map((d) => d.name);
 
     const dateLabel = new Date().toLocaleDateString('en-GB', {
       day: 'numeric',
@@ -173,4 +173,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+
 

@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
         submittedAt: row.submitted_at,
         overall: row.computed_scores?.overall ?? null,
         band: row.computed_scores?.band?.name ?? null,
-        flagged: dims.filter((d: any) => d.score <= 80).map((d: any) => d.name),
+        flagged: dims.filter((d: any) => d.score < 75).map((d: any) => d.name),
       };
     });
 
@@ -53,3 +53,4 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
+

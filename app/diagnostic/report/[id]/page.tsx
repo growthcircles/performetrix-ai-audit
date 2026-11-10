@@ -1,5 +1,11 @@
 import { createServiceClient } from '@/lib/diagnostic/supabase';
-import { DIMENSION_IMPACT, DIMENSION_STRENGTH, MATURITY_BANDS, PRIORITY_THRESHOLD } from '@/lib/diagnostic/data';
+import {
+  DIMENSION_IMPACT,
+  MATURITY_BANDS,
+  bandForScore,
+  colorForScore,
+  impactTierForScore,
+} from '@/lib/diagnostic/data';
 import { buildCta } from '@/lib/diagnostic/cta';
 
 export default async function ReportPage({
@@ -61,15 +67,8 @@ export default async function ReportPage({
     );
   }
 
-  const flaggedDimensions = dimensions.filter((d: any) => d.score <= 80);
-  const healthyDimensions = dimensions.filter((d: any) => d.score > 80);
   const overall = scores.overall ?? 0;
-  const band = scores.band || {
-    key: 'ad-hoc',
-    name: 'Ad hoc',
-    rangeLabel: '0-39',
-    description: 'No clear position yet.',
-  };
+  const band = scores.band || bandForScore(overall);
 
   const raw = (submission.raw_answers || {}) as any;
   const respondent = raw.__respondent || {};
@@ -77,11 +76,25 @@ export default async function ReportPage({
   const displayOrg =
     respondent.organisation || submission.leaders.customers?.name || 'Unknown';
 
-  const call = buildCta({
-    organisation: displayOrg,
-    flagged: flaggedDimensions,
-    healthy: healthyDimensions,
-  });
+  const call = buildCta({ organisation: displayOrg, dimensions });
+
+  const sorted = [...dimensions].sort((a: any, b: any) => a.score - b.score);
+  const lowest = sorted[0];
+  const highest = sorted[sorted.length - 1];
+  const gap = highest.score - lowest.score;
+  const gain = (gap / 5).toFixed(1);
+  const lowestBand = bandForScore(lowest.score);
+  const highestBand = bandForScore(highest.score);
+
+  const colour = (c: string) =>
+    c === 'red'
+      ? { text: 'text-[#B65C3F]', border: 'border-[#B65C3F]', dot: 'bg-[#B65C3F]', stroke: '#B65C3F' }
+      : c === 'amber'
+      ? { text: 'text-[#B4915B]', border: 'border-[#B4915B]', dot: 'bg-[#B4915B]', stroke: '#B4915B' }
+      : { text: 'text-[#7C9082]', border: 'border-[#7C9082]', dot: 'bg-[#7C9082]', stroke: '#7C9082' };
+
+  const bandColour = (key: string) =>
+    key === 'ad-hoc' || key === 'reactive' ? 'red' : key === 'building' ? 'amber' : 'green';
 
   return (
     <div className="min-h-screen bg-[#14171F] text-[#E8E4DA] font-body">
@@ -111,28 +124,19 @@ export default async function ReportPage({
               each scored out of 100.
             </li>
             <li>
-              Scores at or below {PRIORITY_THRESHOLD} are flagged as priority gaps: the areas
-              where your organisation is most exposed.
+              Scores map to five bands. Colour follows the band: red for Ad hoc and Reactive,
+              amber for Building, green for Embedded and Leading.
             </li>
             <li>
-              Each dimension is scored from three answers. A score in the 61-80 band means the
-              behaviour is present but inconsistent. Below 61 it is rare or absent.
+              Each dimension is scored from three answers. Below 60 means the behaviour is rare
+              or absent. 60 to 74 means it is present but inconsistent. 75 and above means it is
+              established.
             </li>
             <li>
               This is one person's view of your organisation, not a consensus. It is a starting
               point for discussion, not a final verdict.
             </li>
           </ul>
-          <div className="flex gap-4 pt-3 border-t border-[#333B4C]">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-[#B4915B]" />
-              <span className="text-xs text-[#E8E4DA] opacity-80">Score above {PRIORITY_THRESHOLD}, on track</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 rounded-full bg-[#B65C3F]" />
-              <span className="text-xs text-[#E8E4DA] opacity-80">Score at or below {PRIORITY_THRESHOLD}, priority gap</span>
-            </div>
-          </div>
         </div>
 
         {/* Scoring key */}
@@ -140,18 +144,21 @@ export default async function ReportPage({
           <div className="text-[11px] text-[#9AA3B5] uppercase tracking-wider mb-3">
             Scoring key
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-            {MATURITY_BANDS.map((b) => (
-              <div key={b.key} className="border border-[#333B4C] rounded p-2">
-                <div className="text-xs font-display text-[#D8BE8F]">{b.rangeLabel}</div>
-                <div className="text-[10px] uppercase tracking-wider text-[#9AA3B5]">{b.name}</div>
-              </div>
-            ))}
+          <div className="space-y-2">
+            {MATURITY_BANDS.map((b) => {
+              const c = colour(bandColour(b.key));
+              return (
+                <div key={b.key} className="flex items-center gap-3">
+                  <div className={`w-2 h-2 rounded-full ${c.dot}`} />
+                  <div className="text-xs font-mono text-[#E8E4DA] opacity-80 w-16">{b.rangeLabel}</div>
+                  <div className="text-xs font-display">{b.name}</div>
+                </div>
+              );
+            })}
           </div>
           <p className="text-xs text-[#E8E4DA] opacity-50 mt-3">
-            Priority gap threshold: {PRIORITY_THRESHOLD} or below. Every dimension contributes
-            equally to the overall score, so a change in any one dimension moves the total by
-            the same amount.
+            Every dimension contributes equally to the overall score, so a change in any one
+            dimension moves the total by the same amount.
           </p>
         </div>
 
@@ -162,8 +169,8 @@ export default async function ReportPage({
             <div className="text-xs text-[#9AA3B5] uppercase tracking-wider">
               Overall maturity score
             </div>
-            <span className={`text-xs uppercase tracking-wider ${band.key === 'leading' || band.key === 'embedded' ? 'text-[#7C9082]' : band.key === 'building' ? 'text-[#B4915B]' : 'text-[#B65C3F]'}`}>
-              {band.name}
+            <span className={`text-xs uppercase tracking-wider ${colour(bandColour(band.key)).text}`}>
+              {band.name} ({band.rangeLabel})
             </span>
             <p className="text-xs text-[#E8E4DA] opacity-60 mt-1">{band.description}</p>
           </div>
@@ -172,15 +179,13 @@ export default async function ReportPage({
         {/* Gauge grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {dimensions.map((dim: any) => {
-            const isFlagged = dim.score <= 80;
-            const strokeColor = isFlagged ? '#B65C3F' : '#7C9082';
+            const dband = bandForScore(dim.score);
+            const c = colour(colorForScore(dim.score));
             const strokeDashoffset = 201 * (1 - dim.score / 100);
-            const bandLabel = dim.score > 80 ? 'On track' : 'Priority gap';
-            const labelColor = dim.score > 80 ? '#7C9082' : '#B65C3F';
             return (
               <div
                 key={dim.key}
-                className={`bg-[#1B2029] border border-[#333B4C] rounded p-3 text-center ${isFlagged ? 'border-[#B65C3F]' : 'border-[#7C9082]'}`}
+                className={`bg-[#1B2029] border rounded p-3 text-center ${c.border}`}
               >
                 <div className="relative w-20 h-20 mx-auto mb-2">
                   <svg width="80" height="80" viewBox="0 0 80 80" transform="rotate(-90)">
@@ -190,7 +195,7 @@ export default async function ReportPage({
                       cy="40"
                       r="32"
                       fill="none"
-                      stroke={strokeColor}
+                      stroke={c.stroke}
                       strokeWidth="8"
                       strokeLinecap="round"
                       strokeDasharray="201"
@@ -202,51 +207,47 @@ export default async function ReportPage({
                   </div>
                 </div>
                 <div className="text-sm font-display mb-1">{dim.name}</div>
-                <div className={`text-[9px] uppercase tracking-wider ${labelColor}`}>{bandLabel}</div>
+                <div className={`text-[9px] uppercase tracking-wider ${c.text}`}>{dband.name}</div>
               </div>
             );
           })}
         </div>
 
-        {/* Impact summary */}
-        {flaggedDimensions.length > 0 && (
-          <div className="bg-[#1B2029] border border-[#B65C3F] rounded p-4 mb-8">
-            <div className="text-[11px] text-[#B65C3F] uppercase tracking-wider mb-2">
-              What this could mean for {displayOrg}
-            </div>
-            {flaggedDimensions.map((dim: any) => {
-              const band = dim.score >= 61 ? '61-80' : '0-60';
-              const text =
-                (DIMENSION_IMPACT[dim.key] && DIMENSION_IMPACT[dim.key][band]) ||
-                DIMENSION_IMPACT[dim.key]?.[Object.keys(DIMENSION_IMPACT[dim.key] || {})[0]] ||
-                dim.band.description;
-              return (
-                <div key={dim.key} className="mb-3 last:mb-0">
-                  <div className="text-sm font-display mb-1">
-                    {dim.name} ({dim.score})
-                  </div>
-                  <div className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed">{text}</div>
-                </div>
-              );
-            })}
+        {/* Impact summary — all dimensions, tiered text */}
+        <div className="bg-[#1B2029] border border-[#333B4C] rounded p-4 mb-8">
+          <div className="text-[11px] text-[#9AA3B5] uppercase tracking-wider mb-3">
+            What this could mean for {displayOrg}
           </div>
-        )}
-
-        {healthyDimensions.length > 0 && (
-          <div className="bg-[#1B2029] border border-[#7C9082] rounded p-4 mb-8">
-            <div className="text-[11px] text-[#7C9082] uppercase tracking-wider mb-2">
-              What is working
-            </div>
-            {healthyDimensions.map((dim: any) => (
-              <div key={dim.key} className="mb-3 last:mb-0">
-                <div className="text-sm font-display mb-1">{dim.name}</div>
-                <div className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed">
-                  {DIMENSION_STRENGTH[dim.key] || ''}
+          {dimensions.map((d: any) => {
+            const dband = bandForScore(d.score);
+            const c = colour(colorForScore(d.score));
+            const text = DIMENSION_IMPACT[d.key]?.[impactTierForScore(d.score)] || '';
+            return (
+              <div key={d.key} className="mb-3 last:mb-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="text-sm font-display">{d.name}</div>
+                  <span className={`text-[10px] uppercase tracking-wider px-2 py-0.5 rounded border ${c.border} ${c.text}`}>
+                    {dband.name} ({d.score})
+                  </span>
                 </div>
+                <div className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed">{text}</div>
               </div>
-            ))}
+            );
+          })}
+        </div>
+
+        {/* Where the next gain is */}
+        <div className="bg-[#1B2029] border border-[#333B4C] rounded p-4 mb-8">
+          <div className="text-[11px] text-[#9AA3B5] uppercase tracking-wider mb-2">
+            Where the next gain is
           </div>
-        )}
+          <p className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed">
+            {lowest.name} is the widest gap at {lowest.score} ({lowestBand.name}), {gap} points
+            below {highest.name} at {highest.score} ({highestBand.name}). Because each dimension
+            carries equal weight, lifting {lowest.name} by {gap} points would add {gain} points to
+            the overall score. The same lift in any other dimension would add the same amount.
+          </p>
+        </div>
 
         {/* CTA */}
         <div className="bg-[#1B2029] border border-[#B4915B] rounded p-4 mb-8">
@@ -272,12 +273,3 @@ export default async function ReportPage({
     </div>
   );
 }
-
-
-
-
-
-
-
-
-

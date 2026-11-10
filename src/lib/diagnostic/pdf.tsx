@@ -11,7 +11,13 @@ import {
 } from '@react-pdf/renderer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { DIMENSION_IMPACT, DIMENSION_STRENGTH, MATURITY_BANDS, PRIORITY_THRESHOLD } from './data';
+import {
+  DIMENSION_IMPACT,
+  MATURITY_BANDS,
+  bandForScore,
+  colorForScore,
+  impactTierForScore,
+} from './data';
 import { buildCta } from './cta';
 
 const C = {
@@ -62,6 +68,9 @@ const s = StyleSheet.create({
   para: { fontSize: 8.2, lineHeight: 1.45, color: C.text, marginBottom: 4 },
   dimPara: { fontSize: 7.9, lineHeight: 1.45, color: C.dim },
   lead: { fontFamily: 'Helvetica-Bold', color: C.text },
+  bulletRow: { flexDirection: 'row', marginBottom: 4 },
+  bullet: { width: 10, fontSize: 8.2, color: C.brass },
+  bulletText: { flex: 1, fontSize: 8.2, lineHeight: 1.45, color: C.text },
   divider: { borderTopWidth: 1, borderTopColor: C.line, marginVertical: 9 },
   scoreRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 2 },
   scoreBig: { fontSize: 40, color: C.brassMid, fontFamily: 'Helvetica-Bold', lineHeight: 1 },
@@ -75,17 +84,21 @@ const s = StyleSheet.create({
     marginBottom: 3,
     marginTop: 6,
   },
-  thName: { width: '38%', fontSize: 7, letterSpacing: 0.8, color: C.dim, fontFamily: 'Helvetica-Bold' },
-  thBar: { width: '38%' },
+  thName: { width: '34%', fontSize: 7, letterSpacing: 0.8, color: C.dim, fontFamily: 'Helvetica-Bold' },
+  thBar: { width: '34%' },
   thScore: { width: '10%', fontSize: 7, color: C.dim, textAlign: 'right', fontFamily: 'Helvetica-Bold' },
-  thStatus: { width: '14%', fontSize: 7, color: C.dim, textAlign: 'right', fontFamily: 'Helvetica-Bold' },
-  tdName: { width: '38%', fontSize: 8.2, color: C.text },
-  tdBar: { width: '38%', paddingRight: 10 },
+  thStatus: { width: '22%', fontSize: 7, color: C.dim, textAlign: 'right', fontFamily: 'Helvetica-Bold' },
+  tdName: { width: '34%', fontSize: 8.2, color: C.text },
+  tdBar: { width: '34%', paddingRight: 10 },
   barBg: { height: 5, backgroundColor: C.barBg, borderRadius: 2, width: '100%' },
   tdScore: { width: '10%', fontSize: 8.2, color: C.text, textAlign: 'right', fontFamily: 'Helvetica-Bold' },
-  tdStatus: { width: '14%', fontSize: 6.6, letterSpacing: 0.4, textAlign: 'right' },
+  tdStatus: { width: '22%', fontSize: 6.6, letterSpacing: 0.4, textAlign: 'right' },
   tableRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 4, borderBottomWidth: 0.5, borderBottomColor: C.barBg },
   dimName: { fontSize: 8.4, fontFamily: 'Helvetica-Bold', color: C.text, marginTop: 3 },
+  dot: { width: 6, height: 6, borderRadius: 3, marginRight: 5 },
+  keyRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 3 },
+  keyRange: { width: 40, fontSize: 7, color: C.dim },
+  keyName: { fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.dim },
   ctaLink: { backgroundColor: C.brassMid, paddingVertical: 7, paddingHorizontal: 14, alignSelf: 'flex-start', marginTop: 6 },
   ctaText: { fontSize: 8, color: '#FFFFFF', fontFamily: 'Helvetica-Bold', letterSpacing: 0.8 },
   callTitle: { fontSize: 10.5, fontFamily: 'Helvetica-Bold', color: C.brass, marginBottom: 3 },
@@ -123,50 +136,45 @@ function logoDataUri(): string | null {
   }
 }
 
-function listNames(items: Array<{ name: string }>): string {
-  if (items.length === 0) return '';
-  if (items.length === 1) return items[0].name;
-  if (items.length === 2) return `${items[0].name} and ${items[1].name}`;
-  return items.slice(0, -1).map((i) => i.name).join(', ') + ' and ' + items[items.length - 1].name;
+function entry(d: { name: string; score: number }): string {
+  return `${d.name} (${d.score}, ${bandForScore(d.score).name})`;
+}
+
+function list(items: Array<{ name: string; score: number }>): string {
+  return items.map(entry).join('; ');
+}
+
+function colour(c: string): string {
+  return c === 'red' ? C.rust : c === 'amber' ? C.brassMid : C.sage;
 }
 
 function summary(input: ReportPdfInput): string {
-  const flagged = input.dimensions.filter((d) => d.score <= 80);
-  const healthy = input.dimensions.filter((d) => d.score > 80);
+  const below = input.dimensions.filter((d) => d.score < 75).sort((a, b) => a.score - b.score);
+  const above = input.dimensions.filter((d) => d.score >= 75).sort((a, b) => b.score - a.score);
   const weakest = input.dimensions.reduce((a, b) => (b.score < a.score ? b : a));
   const strongest = input.dimensions.reduce((a, b) => (b.score > a.score ? b : a));
+  const spread = strongest.score - weakest.score;
 
-  if (healthy.length === 0) {
-    return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band (${input.band.rangeLabel}). All five dimensions sit below the priority threshold of ${PRIORITY_THRESHOLD}, so the gaps reinforce each other. ${weakest.name} scores ${weakest.score}, the lowest of the five, and ${strongest.name} scores ${strongest.score}.`;
+  if (below.length === 0) {
+    return `${input.organisation} scores ${input.overall} out of 100, placing it in the ${input.band.name} band (${input.band.rangeLabel}). All five dimensions sit in the Embedded or Leading band. ${strongest.name} is highest at ${strongest.score} (${bandForScore(strongest.score).name}), and ${weakest.name} is lowest at ${weakest.score} (${bandForScore(weakest.score).name}). The task now is keeping those practices embedded as AI use changes.`;
   }
-  if (flagged.length === 0) {
-    return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band (${input.band.rangeLabel}). All five dimensions sit above the priority threshold of ${PRIORITY_THRESHOLD}. ${strongest.name} is strongest at ${strongest.score}, and ${weakest.name} is lowest at ${weakest.score}. The task now is keeping those practices embedded as AI use changes.`;
-  }
-  return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band (${input.band.rangeLabel}). The picture is mixed: ${listNames(healthy)} ${healthy.length === 1 ? 'is' : 'are'} holding up, while ${listNames(flagged)} ${flagged.length === 1 ? 'sits' : 'sit'} below the priority threshold of ${PRIORITY_THRESHOLD}. ${weakest.name} scores ${weakest.score}, and ${strongest.name} scores ${strongest.score}.`;
+
+  const aboveText = above.length ? ` At or above it: ${list(above)}.` : '';
+  return `${input.organisation} scores ${input.overall} out of 100, placing it in the ${input.band.name} band (${input.band.rangeLabel}). The dimensions below the Building band are: ${list(below)}.${aboveText} The spread is ${spread} points between ${strongest.name} and ${weakest.name}.`;
 }
 
 function nextGain(input: ReportPdfInput): string {
-  const flagged = input.dimensions.filter((d) => d.score <= 80);
-  if (flagged.length === 0) {
-    return `No dimension is flagged. The next gain is in keeping the strongest practices stable while AI use changes.`;
-  }
-  const lowest = [...flagged].sort((a, b) => a.score - b.score).slice(0, 2);
-  return `On this evidence, ${listNames(lowest)} ${lowest.length === 1 ? 'has' : 'have'} the most room to improve, because the score is lowest there. Every dimension counts equally toward the overall score, so no dimension is a bigger lever than another.`;
-}
-
-function cta(input: ReportPdfInput): { title: string; body: string } {
-  return buildCta({
-    organisation: input.organisation,
-    flagged: input.dimensions.filter((d) => d.score <= 80),
-    healthy: input.dimensions.filter((d) => d.score > 80),
-  });
+  const sorted = [...input.dimensions].sort((a, b) => a.score - b.score);
+  const lowest = sorted[0];
+  const highest = sorted[sorted.length - 1];
+  const gap = highest.score - lowest.score;
+  const gain = (gap / 5).toFixed(1);
+  return `${lowest.name} is the widest gap at ${lowest.score} (${bandForScore(lowest.score).name}), ${gap} points below ${highest.name} at ${highest.score} (${bandForScore(highest.score).name}). Because each dimension carries equal weight, lifting ${lowest.name} by ${gap} points would add ${gain} points to the overall score. The same lift in any other dimension would add the same amount.`;
 }
 
 function ReportDoc({ input }: { input: ReportPdfInput }) {
   const logo = logoDataUri();
-  const flagged = input.dimensions.filter((d) => d.score <= 80);
-  const healthy = input.dimensions.filter((d) => d.score > 80);
-  const call = cta(input);
+  const call = buildCta({ organisation: input.organisation, dimensions: input.dimensions });
 
   const challenges: Array<{ lead: string; text: string }> = [
     {
@@ -213,10 +221,13 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
             the organisations we work with, the same problems recur.
           </Text>
           {challenges.map((c) => (
-            <Text key={c.lead} style={s.para}>
-              <Text style={s.lead}>{c.lead}</Text>
-              {c.text}
-            </Text>
+            <View key={c.lead} style={s.bulletRow}>
+              <Text style={s.bullet}>•</Text>
+              <Text style={s.bulletText}>
+                <Text style={s.lead}>{c.lead}</Text>
+                {c.text}
+              </Text>
+            </View>
           ))}
           <Text style={s.para}>
             <Text style={s.lead}>What follows. </Text>
@@ -237,17 +248,20 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
             <Text style={s.scoreBig}>{input.overall}</Text>
             <Text style={s.scoreOf}>/ 100</Text>
           </View>
-          <Text style={s.bandName}>{input.band.name}</Text>
+          <Text style={s.bandName}>
+            {input.band.name} ({input.band.rangeLabel})
+          </Text>
           <Text style={s.dimPara}>{input.band.description}</Text>
 
           <View style={s.tableHead}>
             <Text style={s.thName}>DIMENSION</Text>
             <Text style={s.thBar} />
             <Text style={s.thScore}>SCORE</Text>
-            <Text style={s.thStatus}>STATUS</Text>
+            <Text style={s.thStatus}>BAND</Text>
           </View>
           {input.dimensions.map((d) => {
-            const isFlagged = d.score <= 80;
+            const dband = bandForScore(d.score);
+            const c = colorForScore(d.score);
             return (
               <View key={d.key} style={s.tableRow}>
                 <Text style={s.tdName}>{d.name}</Text>
@@ -257,35 +271,36 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
                       style={{
                         height: 5,
                         width: `${Math.max(0, Math.min(100, d.score))}%`,
-                        backgroundColor: isFlagged ? C.rust : C.sageBar,
+                        backgroundColor: colour(c),
                         borderRadius: 2,
                       }}
                     />
                   </View>
                 </View>
                 <Text style={s.tdScore}>{d.score}</Text>
-                <Text style={[s.tdStatus, { color: isFlagged ? C.rust : C.sage }]}>
-                  {isFlagged ? 'PRIORITY GAP' : 'ON TRACK'}
-                </Text>
+                <Text style={[s.tdStatus, { color: colour(c) }]}>{dband.name}</Text>
               </View>
             );
           })}
-        {/* Scoring key */}
-        <View style={s.divider} />
 
-        <Text style={s.sectionTitle}>SCORING KEY</Text>
-        {MATURITY_BANDS.map((b) => (
-          <View key={b.key} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
-            <Text style={{ fontSize: 7, color: C.dim }}>{b.rangeLabel}</Text>
-            <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.dim }}>{b.name}</Text>
-          </View>
-        ))}
-        <Text style={s.dimPara}>
-          Priority gap threshold: {PRIORITY_THRESHOLD} or below. Every dimension counts equally
-          toward the overall score — a change in any one dimension moves the total by the same
-          amount.
-        </Text>
-      </View>
+          <View style={s.divider} />
+
+          <Text style={s.sectionTitle}>SCORING KEY</Text>
+          {MATURITY_BANDS.map((b) => {
+            const c = b.key === 'ad-hoc' || b.key === 'reactive' ? 'red' : b.key === 'building' ? 'amber' : 'green';
+            return (
+              <View key={b.key} style={s.keyRow}>
+                <View style={[s.dot, { backgroundColor: colour(c) }]} />
+                <Text style={s.keyRange}>{b.rangeLabel}</Text>
+                <Text style={s.keyName}>{b.name}</Text>
+              </View>
+            );
+          })}
+          <Text style={s.dimPara}>
+            Colour follows the band. Every dimension counts equally toward the overall score, so a
+            change in any one dimension moves the total by the same amount.
+          </Text>
+        </View>
 
         <View style={s.footer} fixed>
           <Text>PerforMetrix - Measuring what really matters</Text>
@@ -310,36 +325,30 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
             organisation. It is a starting point for discussion, not a verdict.
           </Text>
 
-          {flagged.length > 0 && (
-            <>
-              <Text style={s.sectionTitle}>WHAT THIS COULD MEAN FOR {input.organisation.toUpperCase()}</Text>
-              {flagged.map((d) => {
-                const band = d.score >= 61 ? '61-80' : '0-60';
-                const text =
-                  (DIMENSION_IMPACT[d.key] && DIMENSION_IMPACT[d.key][band]) ||
-                  DIMENSION_IMPACT[d.key]?.[Object.keys(DIMENSION_IMPACT[d.key] || {})[0]] ||
-                  '';
-                return (
-                  <View key={d.key} style={{ marginBottom: 5 }}>
-                    <Text style={s.dimName}>{d.name} ({d.score})</Text>
-                    <Text style={s.para}>{text}</Text>
-                  </View>
-                );
-              })}
-            </>
-          )}
-
-          {healthy.length > 0 && (
-            <>
-              <Text style={s.sectionTitle}>WHAT IS WORKING</Text>
-              {healthy.map((d) => (
-                <View key={d.key} style={{ marginBottom: 5 }}>
+          <Text style={s.sectionTitle}>WHAT THIS COULD MEAN FOR {input.organisation.toUpperCase()}</Text>
+          {input.dimensions.map((d) => {
+            const dband = bandForScore(d.score);
+            const c = colorForScore(d.score);
+            const text = DIMENSION_IMPACT[d.key]?.[impactTierForScore(d.score)] || '';
+            return (
+              <View key={d.key} style={{ marginBottom: 5 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 2 }}>
                   <Text style={s.dimName}>{d.name}</Text>
-                  <Text style={s.para}>{DIMENSION_STRENGTH[d.key] || ''}</Text>
+                  <Text
+                    style={{
+                      fontSize: 9,
+                      color: colour(c),
+                      letterSpacing: 0.4,
+                      marginLeft: 6,
+                    }}
+                  >
+                    {dband.name} ({d.score})
+                  </Text>
                 </View>
-              ))}
-            </>
-          )}
+                <Text style={s.para}>{text}</Text>
+              </View>
+            );
+          })}
 
           <Text style={s.sectionTitle}>WHERE THE NEXT GAIN IS</Text>
           <Text style={s.para}>{nextGain(input)}</Text>
@@ -389,5 +398,3 @@ export async function renderReportPdf(input: ReportPdfInput): Promise<Buffer> {
   }
   return buf;
 }
-
-
