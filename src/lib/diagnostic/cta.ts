@@ -28,7 +28,7 @@ export function buildCta({
       title: 'Your results show where to focus.',
       body: `${listNames(healthy)} ${healthy.length === 1 ? 'is' : 'are'} holding up. ${listNames(
         flagged,
-      )} ${flagged.length === 1 ? 'sits' : 'sit'} below the priority threshold. Closing that gap is where the next gain is, and the strong areas give you a base to build from. If you would like to discuss what these findings mean for ${organisation}, book a call.`,
+      )} ${flagged.length === 1 ? 'has' : 'have'} the most room to improve, and the strong areas give you a base to build from. If you would like to discuss what these findings mean for ${organisation}, book a call.`,
     };
   }
 

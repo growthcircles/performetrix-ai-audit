@@ -11,7 +11,7 @@ import {
 } from '@react-pdf/renderer';
 import fs from 'node:fs';
 import path from 'node:path';
-import { DIMENSION_IMPACT, DIMENSION_STRENGTH } from './data';
+import { DIMENSION_IMPACT, DIMENSION_STRENGTH, MATURITY_BANDS, PRIORITY_THRESHOLD } from './data';
 import { buildCta } from './cta';
 
 const C = {
@@ -109,7 +109,7 @@ export type ReportPdfInput = {
   organisation: string;
   dateLabel: string;
   overall: number;
-  band: { key: string; name: string; description: string };
+  band: { key: string; name: string; rangeLabel: string; description: string };
   dimensions: Array<{ key: string; name: string; score: number }>;
 };
 
@@ -137,12 +137,12 @@ function summary(input: ReportPdfInput): string {
   const strongest = input.dimensions.reduce((a, b) => (b.score > a.score ? b : a));
 
   if (healthy.length === 0) {
-    return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band. The pattern is consistent rather than isolated: all five dimensions sit below the priority threshold, so the gaps reinforce each other. ${weakest.name} is the weakest at ${weakest.score}, and ${strongest.name} the strongest at ${strongest.score}, though neither is strong enough to offset the others.`;
+    return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band (${input.band.rangeLabel}). All five dimensions sit below the priority threshold of ${PRIORITY_THRESHOLD}, so the gaps reinforce each other. ${weakest.name} scores ${weakest.score}, the lowest of the five, and ${strongest.name} scores ${strongest.score}.`;
   }
   if (flagged.length === 0) {
-    return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band. All five dimensions sit above the priority threshold, with ${strongest.name} strongest at ${strongest.score} and ${weakest.name} lowest at ${weakest.score}. The task now is keeping those practices embedded as AI use changes.`;
+    return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band (${input.band.rangeLabel}). All five dimensions sit above the priority threshold of ${PRIORITY_THRESHOLD}. ${strongest.name} is strongest at ${strongest.score}, and ${weakest.name} is lowest at ${weakest.score}. The task now is keeping those practices embedded as AI use changes.`;
   }
-  return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band. The picture is mixed rather than uniform: ${listNames(healthy)} ${healthy.length === 1 ? 'is' : 'are'} holding up, while ${listNames(flagged)} ${flagged.length === 1 ? 'sits' : 'sit'} below the priority threshold. ${weakest.name} is the weakest at ${weakest.score}, and ${strongest.name} the strongest at ${strongest.score}.`;
+  return `${input.organisation} scores ${input.overall} out of 100, which places it in the ${input.band.name} band (${input.band.rangeLabel}). The picture is mixed: ${listNames(healthy)} ${healthy.length === 1 ? 'is' : 'are'} holding up, while ${listNames(flagged)} ${flagged.length === 1 ? 'sits' : 'sit'} below the priority threshold of ${PRIORITY_THRESHOLD}. ${weakest.name} scores ${weakest.score}, and ${strongest.name} scores ${strongest.score}.`;
 }
 
 function nextGain(input: ReportPdfInput): string {
@@ -151,7 +151,7 @@ function nextGain(input: ReportPdfInput): string {
     return `No dimension is flagged. The next gain is in keeping the strongest practices stable while AI use changes.`;
   }
   const lowest = [...flagged].sort((a, b) => a.score - b.score).slice(0, 2);
-  return `On this evidence, ${listNames(lowest)} ${lowest.length === 1 ? 'is the area' : 'are the two areas'} where a change would move the overall score most.`;
+  return `On this evidence, ${listNames(lowest)} ${lowest.length === 1 ? 'has' : 'have'} the most room to improve, because the score is lowest there. Every dimension counts equally toward the overall score, so no dimension is a bigger lever than another.`;
 }
 
 function cta(input: ReportPdfInput): { title: string; body: string } {
@@ -220,14 +220,14 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
           ))}
           <Text style={s.para}>
             <Text style={s.lead}>What follows. </Text>
-            Inconsistent reviews erode trust in the process. Unexplained or unfair outcomes create
-            legal and regulatory exposure. Strong contributors can be penalised for working
-            differently, while weak work passes because it looks polished. AI investment continues
-            without a clear line to performance.
+            When these behaviours are rare, the risks compound: inconsistent reviews erode trust
+            in the process, unexplained or unfair outcomes create exposure, strong contributors
+            can be penalised for working differently, and weak work passes because it looks
+            polished. AI investment continues without a clear line to performance.
           </Text>
           <Text style={s.para}>
             This diagnostic measures where your organisation stands against these challenges across
-            five dimensions.
+            five dimensions. It is based on one respondent's answers, not a consensus.
           </Text>
 
           <View style={s.divider} />
@@ -270,7 +270,22 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
               </View>
             );
           })}
-        </View>
+        {/* Scoring key */}
+        <View style={s.divider} />
+
+        <Text style={s.sectionTitle}>SCORING KEY</Text>
+        {MATURITY_BANDS.map((b) => (
+          <View key={b.key} style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 2 }}>
+            <Text style={{ fontSize: 7, color: C.dim }}>{b.rangeLabel}</Text>
+            <Text style={{ fontSize: 7, fontFamily: 'Helvetica-Bold', color: C.dim }}>{b.name}</Text>
+          </View>
+        ))}
+        <Text style={s.dimPara}>
+          Priority gap threshold: {PRIORITY_THRESHOLD} or below. Every dimension counts equally
+          toward the overall score — a change in any one dimension moves the total by the same
+          amount.
+        </Text>
+      </View>
 
         <View style={s.footer} fixed>
           <Text>PerforMetrix - Measuring what really matters</Text>
@@ -289,16 +304,28 @@ function ReportDoc({ input }: { input: ReportPdfInput }) {
         <View style={s.body}>
           <Text style={s.sectionTitle}>EXECUTIVE SUMMARY</Text>
           <Text style={s.para}>{summary(input)}</Text>
+          <Text style={s.para}>
+            <Text style={s.lead}>One person's view. </Text>
+            This report is based on one respondent's answers, not a consensus across your
+            organisation. It is a starting point for discussion, not a verdict.
+          </Text>
 
           {flagged.length > 0 && (
             <>
               <Text style={s.sectionTitle}>WHAT THIS COULD MEAN FOR {input.organisation.toUpperCase()}</Text>
-              {flagged.map((d) => (
-                <View key={d.key} style={{ marginBottom: 5 }}>
-                  <Text style={s.dimName}>{d.name}</Text>
-                  <Text style={s.para}>{DIMENSION_IMPACT[d.key] || ''}</Text>
-                </View>
-              ))}
+              {flagged.map((d) => {
+                const band = d.score >= 61 ? '61-80' : '0-60';
+                const text =
+                  (DIMENSION_IMPACT[d.key] && DIMENSION_IMPACT[d.key][band]) ||
+                  DIMENSION_IMPACT[d.key]?.[Object.keys(DIMENSION_IMPACT[d.key] || {})[0]] ||
+                  '';
+                return (
+                  <View key={d.key} style={{ marginBottom: 5 }}>
+                    <Text style={s.dimName}>{d.name} ({d.score})</Text>
+                    <Text style={s.para}>{text}</Text>
+                  </View>
+                );
+              })}
             </>
           )}
 

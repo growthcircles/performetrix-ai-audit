@@ -179,17 +179,39 @@ export function dimensionForKey(key: string) {
   return DIMENSIONS.find((d) => d.key === key);
 }
 
-export const DIMENSION_IMPACT: Record<string, string> = {
-  vision:
-    'No shared answer to what AI is for. Teams improvise independently, quality is inconsistent, and there is no way to measure whether AI investment is producing results.',
-  criteria:
-    'No agreed standard for what good AI-assisted work looks like. Reviews become subjective, rating disputes go unresolved, and two managers can judge the same work differently.',
-  manager:
-    'Managers cannot coach their teams on AI use or judge whether output is good. Poor work passes review, good work gets questioned, and people learn to game the process.',
-  accountability:
-    'Nobody owns AI-driven decisions. When something goes wrong, a poor call or a compliance issue, there is no clear answer to who was responsible.',
-  culture:
-    'People hide their AI use. Leaders do not model it openly, so teams do not either, and the organisation never learns what is actually happening.',
+export const PRIORITY_THRESHOLD = 80;
+
+export const DIMENSION_IMPACT: Record<string, Record<string, string>> = {
+  vision: {
+    '61-80':
+      'AI direction is discussed but not consistently applied. Some teams know what AI is for; others improvise, so performance comparisons across teams are unreliable.',
+    '0-60':
+      'No shared answer to what AI is for. Teams improvise independently, quality is inconsistent, and there is no way to measure whether AI investment is producing results.',
+  },
+  criteria: {
+    '61-80':
+      'Quality standards for AI-assisted work exist in places but are not applied consistently. Reviews can drift towards personal preference, and two managers may judge similar work differently.',
+    '0-60':
+      'No agreed standard for what good AI-assisted work looks like. Reviews become subjective, rating disputes go unresolved, and two managers can judge the same work differently.',
+  },
+  manager: {
+    '61-80':
+      'Managers can coach AI use in some situations but not reliably across the team. Coaching happens at review time more than during the work.',
+    '0-60':
+      'Managers cannot coach their teams on AI use or judge whether output is good. Poor work passes review, good work gets questioned, and people learn to game the process.',
+  },
+  accountability: {
+    '61-80':
+      'Accountability is named for some AI-driven decisions but not all. When things go wrong, responsibility is usually clear, but not always.',
+    '0-60':
+      'Nobody owns AI-driven decisions. When something goes wrong, a poor call or a compliance issue, there is no clear answer to who was responsible.',
+  },
+  culture: {
+    '61-80':
+      'AI use is discussed openly in some teams but not all. Leaders model responsible use occasionally, and the organisation learns from some of what is happening.',
+    '0-60':
+      'People hide their AI use. Leaders do not model it openly, so teams do not either, and the organisation never learns what is actually happening.',
+  },
 };
 
 export const DIMENSION_STRENGTH: Record<string, string> = {

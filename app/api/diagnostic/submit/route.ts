@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
         organisation,
         dateLabel,
         overall,
-        band: { key: band.key, name: band.name, description: band.description },
+        band: { key: band.key, name: band.name, rangeLabel: band.rangeLabel, description: band.description },
         dimensions: dimensions.map((d) => ({ key: d.key, name: d.name, score: d.score })),
       });
       const safeOrg = organisation.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '');

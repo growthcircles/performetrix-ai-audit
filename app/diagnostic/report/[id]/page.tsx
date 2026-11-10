@@ -1,5 +1,5 @@
 import { createServiceClient } from '@/lib/diagnostic/supabase';
-import { DIMENSION_IMPACT, DIMENSION_STRENGTH } from '@/lib/diagnostic/data';
+import { DIMENSION_IMPACT, DIMENSION_STRENGTH, MATURITY_BANDS, PRIORITY_THRESHOLD } from '@/lib/diagnostic/data';
 import { buildCta } from '@/lib/diagnostic/cta';
 
 export default async function ReportPage({
@@ -111,21 +111,48 @@ export default async function ReportPage({
               each scored out of 100.
             </li>
             <li>
-              Scores at or below 80 are flagged as priority gaps: the areas where your
-              organisation is most exposed.
+              Scores at or below {PRIORITY_THRESHOLD} are flagged as priority gaps: the areas
+              where your organisation is most exposed.
             </li>
-            <li>This is a diagnostic for where to focus, not a final verdict.</li>
+            <li>
+              Each dimension is scored from three answers. A score in the 61-80 band means the
+              behaviour is present but inconsistent. Below 61 it is rare or absent.
+            </li>
+            <li>
+              This is one person's view of your organisation, not a consensus. It is a starting
+              point for discussion, not a final verdict.
+            </li>
           </ul>
           <div className="flex gap-4 pt-3 border-t border-[#333B4C]">
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-[#B4915B]" />
-              <span className="text-xs text-[#E8E4DA] opacity-80">Score above 80, on track</span>
+              <span className="text-xs text-[#E8E4DA] opacity-80">Score above {PRIORITY_THRESHOLD}, on track</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="w-2 h-2 rounded-full bg-[#B65C3F]" />
-              <span className="text-xs text-[#E8E4DA] opacity-80">Score at or below 80, priority gap</span>
+              <span className="text-xs text-[#E8E4DA] opacity-80">Score at or below {PRIORITY_THRESHOLD}, priority gap</span>
             </div>
           </div>
+        </div>
+
+        {/* Scoring key */}
+        <div className="bg-[#1B2029] border border-[#333B4C] rounded p-4 mb-8">
+          <div className="text-[11px] text-[#9AA3B5] uppercase tracking-wider mb-3">
+            Scoring key
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+            {MATURITY_BANDS.map((b) => (
+              <div key={b.key} className="border border-[#333B4C] rounded p-2">
+                <div className="text-xs font-display text-[#D8BE8F]">{b.rangeLabel}</div>
+                <div className="text-[10px] uppercase tracking-wider text-[#9AA3B5]">{b.name}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-[#E8E4DA] opacity-50 mt-3">
+            Priority gap threshold: {PRIORITY_THRESHOLD} or below. Every dimension contributes
+            equally to the overall score, so a change in any one dimension moves the total by
+            the same amount.
+          </p>
         </div>
 
         {/* Overall score */}
@@ -187,14 +214,21 @@ export default async function ReportPage({
             <div className="text-[11px] text-[#B65C3F] uppercase tracking-wider mb-2">
               What this could mean for {displayOrg}
             </div>
-            {flaggedDimensions.map((dim: any) => (
-              <div key={dim.key} className="mb-3 last:mb-0">
-                <div className="text-sm font-display mb-1">{dim.name}</div>
-                <div className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed">
-                  {DIMENSION_IMPACT[dim.key] || dim.band.description}
+            {flaggedDimensions.map((dim: any) => {
+              const band = dim.score >= 61 ? '61-80' : '0-60';
+              const text =
+                (DIMENSION_IMPACT[dim.key] && DIMENSION_IMPACT[dim.key][band]) ||
+                DIMENSION_IMPACT[dim.key]?.[Object.keys(DIMENSION_IMPACT[dim.key] || {})[0]] ||
+                dim.band.description;
+              return (
+                <div key={dim.key} className="mb-3 last:mb-0">
+                  <div className="text-sm font-display mb-1">
+                    {dim.name} ({dim.score})
+                  </div>
+                  <div className="text-sm text-[#E8E4DA] opacity-85 leading-relaxed">{text}</div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
