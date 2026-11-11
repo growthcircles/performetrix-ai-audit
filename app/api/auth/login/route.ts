@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminToken, COOKIE_NAME, COOKIE_OPTIONS } from '@/lib/diagnostic/auth';
+import { verifyAdminPassword, COOKIE_NAME, COOKIE_OPTIONS, adminToken } from '@/lib/diagnostic/auth';
 
 export async function POST(req: Request) {
   try {
@@ -12,22 +12,12 @@ export async function POST(req: Request) {
       );
     }
 
-    const cleanEmail = String(email).trim().toLowerCase();
-    const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
-    const adminPassword = process.env.ADMIN_PASSWORD || '';
-
-    if (!adminEmail || !adminPassword) {
-      return NextResponse.json(
-        { error: 'Admin login is not configured on this deployment.' },
-        { status: 500 },
-      );
-    }
-
-    if (cleanEmail !== adminEmail || password !== adminPassword) {
+    const user = await verifyAdminPassword(email, password);
+    if (!user) {
       return NextResponse.json({ error: 'Invalid email or password.' }, { status: 401 });
     }
 
-    const res = NextResponse.json({ ok: true, redirect: '/admin' });
+    const res = NextResponse.json({ ok: true, redirect: '/admin', user });
     res.cookies.set(COOKIE_NAME, adminToken(), COOKIE_OPTIONS);
     return res;
   } catch (err: any) {
